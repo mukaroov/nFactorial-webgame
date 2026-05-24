@@ -9,13 +9,16 @@
             font-family: 'VoidFont';
             src: url('./pixelosopher.ttf') format('truetype');
         }
+        * {
+            font-family: 'VoidFont', sans-serif;
+        }
         body {
             background-color: #0d0d0d; color: #e0e0e0;
-            font-family: 'VoidFont', sans-serif;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh; margin: 0; padding: 10px;
             box-sizing: border-box;
             position: relative;
+            overflow-x: hidden;
         }
         h1 { margin-top: 10px; margin-bottom: 5px; color: #b22222; text-shadow: 0 0 10px #ff0000; font-size: 2rem; text-align: center;}
         
@@ -32,7 +35,7 @@
         .blood-stat { color: #ff4d4d; }
         .level-stat { color: #ffd700; }
 
-        /* 🎮 INVENTORY SLOTS STYLES */
+        /* 🎒 INVENTORY */
         #inventory-container { display: flex; gap: 8px; align-items: center; }
         .item-slot {
             background: #111; border: 2px dashed #555; width: 42px; height: 42px;
@@ -55,7 +58,6 @@
         }
         
         button {
-            font-family: 'VoidFont', sans-serif;
             padding: 10px 20px; font-size: 1rem; cursor: pointer;
             background: #000; color: #ffd700; border: 2px solid #ffd700; border-radius: 8px;
             font-weight: bold; text-transform: uppercase; transition: 0.2s; margin-top: 10px;
@@ -63,14 +65,13 @@
         button:hover { background: #ffd700; color: #000; box-shadow: 0 0 15px #ffd700; }
         
         #menu-btn {
-            font-family: 'VoidFont', sans-serif;
             background: #333; color: #fff; border: 1px solid #666; 
             padding: 8px 16px; border-radius: 8px; font-size: 1rem;
             cursor: pointer; transition: 0.2s; font-weight: bold; margin-top: 0;
         }
         #menu-btn:hover { background: #b22222; border-color: #ff4d4d; box-shadow: 0 0 10px #ff0000; }
 
-        /* 👑 BOARD AUTO-FRAME */
+        /* 👑 BOARD */
         #board {
             display: grid;
             border: 6px solid #4a2525; 
@@ -84,7 +85,7 @@
             width: 62px; height: 62px;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; user-select: none;
-            transition: background 0.2s, transform 0.1s;
+            transition: background 0.2s;
             position: relative;
             background-size: cover;
             background-repeat: no-repeat;
@@ -101,7 +102,7 @@
             cursor: not-allowed;
         }
         
-        .cell:not(.void):hover { background-color: rgba(255, 204, 204, 0.2) !important; transform: scale(1.03); }
+        .cell:not(.void):hover { background-color: rgba(255, 204, 204, 0.2) !important; }
         .selected { background-color: rgba(255, 102, 102, 0.3) !important; box-shadow: inset 0 0 15px #b22222;}
         
         .valid-move::after {
@@ -116,130 +117,6 @@
         .valid-target::after {
             content: '🎯'; font-size: 1.2rem; position: absolute; animation: pulse 0.5s infinite;
         }
-
-        .overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.92); flex-direction: column; align-items: center; 
-            justify-content: center; z-index: 10; padding: 20px; box-sizing: border-box;
-            overflow-y: auto;
-        }
-        
-        #main-menu { display: flex; background: #0d0d0d; }
-        .menu-container {
-            text-align: center; background: #161616; padding: 30px; 
-            border-radius: 15px; border: 2px solid #b22222;
-            box-shadow: 0 0 35px rgba(178,34,34,0.4); max-width: 400px; width: 100%; box-sizing: border-box;
-        }
-        .menu-container button { width: 100%; margin-bottom: 10px; }
-        #high-score-display { color: #ffd700; font-size: 1.2rem; margin-top: 10px; margin-bottom: 20px; font-weight: bold;}
-
-        /* 🛒 MERCHANT SHOP STYLES */
-        .merchant-title { color: #ff4d4d; text-shadow: 0 0 15px #ff0000; font-size: 2rem; margin-top: 0; margin-bottom: 5px; text-align: center; }
-        .merchant-subtitle { color: #888; font-style: italic; margin-bottom: 20px; text-align: center; font-size: 0.9rem; }
-        .shop-card {
-            background: #1a1111; border: 2px solid #552222; color: #fff;
-            padding: 15px; margin: 8px; border-radius: 12px; width: 240px;
-            text-align: center; transition: 0.2s; position: relative;
-            box-shadow: 0 0 15px rgba(0,0,0,0.5); box-sizing: border-box;
-        }
-        .shop-card:hover:not(.sold-out) { border-color: #ff4d4d; box-shadow: 0 0 25px rgba(255,77,77,0.3); }
-        .shop-card h3 { color: #ffd700; margin-top: 0; font-size: 1.1rem; }
-        .shop-card .price { color: #ff4d4d; font-weight: bold; font-size: 1.05rem; margin-top: 10px; }
-        .shop-card button { width: 100%; padding: 8px; font-size: 0.95rem; margin-top: 10px; }
-        .shop-card.sold-out { opacity: 0.3; cursor: not-allowed; }
-
-        /* 🎒 ITEM SWAP CONFIRMATION DIALOG */
-        .swap-dialog {
-            background: #1c1313; border: 2px solid #ff4d4d; padding: 20px;
-            border-radius: 12px; text-align: center; max-width: 320px; width: 100%;
-            box-shadow: 0 0 30px rgba(255,0,0,0.4); box-sizing: border-box;
-        }
-        .swap-dialog h3 { color: #ff4d4d; margin-top: 0; }
-        .swap-dialog p { font-size: 0.95rem; color: #ddd; margin-bottom: 20px; line-height: 1.4; }
-        .swap-buttons { display: flex; gap: 10px; justify-content: center; }
-        .swap-buttons button { margin-top: 0; width: 110px; font-size: 0.9rem; padding: 8px; }
-
-        #help-screen .modal {
-            background: #1c1c1c; border: 2px solid #555; padding: 20px; 
-            border-radius: 12px; max-width: 500px; line-height: 1.4; font-size: 0.95rem;
-            box-shadow: 0 0 30px rgba(255,255,255,0.1); box-sizing: border-box;
-        }
-        #help-screen h3 { color: #ffd700; margin-top: 12px; margin-bottom: 4px; }
-
-        .upgrade-card {
-            background: #1a1a1a; border: 2px solid #b22222; color: #fff;
-            padding: 20px; margin: 10px; border-radius: 12px; cursor: pointer;
-            width: 100%; max-width: 300px; text-align: center; transition: 0.2s;
-            box-shadow: 0 0 20px rgba(178,34,34,0.3); box-sizing: border-box;
-        }
-        .upgrade-card:hover { background: #2a2a2a; box-shadow: 0 0 30px rgba(178,34,34,0.6); }
-        .upgrade-card h3 { color: #ff4d4d; margin-top: 0; font-size: 1.15rem; }
-        .upgrade-card p { font-size: 0.9rem; margin-bottom: 0; }
-
-        #game-over { background: rgba(178,34,34,0.92); color: #fff; text-align: center; }
-        #layer-popup { color: #ffd700; font-size: 1.6rem; font-weight: bold; text-shadow: 0 0 10px #ff0000; display: none; margin-bottom: 10px; text-align: center; position: fixed; top: 15%; z-index: 5; pointer-events: none;}
-        
-        .cell-piece {
-            width: 85%; height: 85%;
-            background-size: contain; background-repeat: no-repeat; background-position: center;
-            pointer-events: none; image-rendering: pixelated;              
-        }
-        .inline-icon {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            vertical-align: middle;
-            image-rendering: pixelated;
-            margin: 0 4px; /* Небольшой отступ слева и справа, чтобы текст не прилипал */
-        }
-        .piece-player { background-image: url("./assets/player/spr_king_white.png"); }
-        .piece-pawn   { background-image: url("./assets/enemy/spr_pawn_black.png"); }
-        .piece-knight { background-image: url("./assets/enemy/spr_knight_black.png"); } 
-        .piece-rook   { background-image: url("./assets/enemy/spr_rook_black.png"); }
-        .piece-bishop { background-image: url("./assets/enemy/spr_bishop_black.png"); }
-        .piece-queen  { background-image: url("./assets/enemy/spr_queen_black.png"); }
-
-        /* 📱 RESPONSIVE MEDIA QUERIES */
-        @media (max-width: 600px) {
-            h1 { font-size: 1.6rem; }
-            #ui-panel { padding: 8px 10px; gap: 10px; font-size: 0.9rem; }
-            #ui-wrapper { flex-direction: row; justify-content: space-between; align-items: center; }
-            #menu-btn { padding: 6px 12px; font-size: 0.9rem; }
-            
-            .cell { width: 40px; height: 40px; }
-            #board { border-width: 4px; outline-width: 2px; }
-            .valid-move::after { width: 12px; height: 12px; }
-            .valid-capture::after { font-size: 0.85rem; }
-            .valid-target::after { font-size: 1rem; }
-
-            .shop-card { width: 100%; max-width: 280px; }
-            #shop-container { flex-direction: column; align-items: center; }
-        }
-
-        .icon {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            image-rendering: pixelated;
-            vertical-align: middle;
-        }
-        .icon-blood { background-image: url('./assets/UI/blood.png'); }
-        .icon-hp { background-image: url('./assets/UI/hp.png'); }
-        .icon-void { background-image: url('./assets/UI/void.png'); }
-        .icon-backpack { background-image: url('./assets/UI/backpack.png'); }
-        .icon-allart { background-image: url('./assets/UI/allart.png'); }
-        .icon-important { background-image: url('./assets/UI/important.png'); }
-        .icon-play { background-image: url('./assets/UI/play.png'); }
-        .icon-rules { background-image: url('./assets/UI/rules.png'); }
-        .icon-trofy { background-image: url('./assets/UI/trofy.png'); }
-        .icon-greed { background-image: url('./assets/UI/greed.png'); }
-        .icon-heal { background-image: url('./assets/UI/heal.png'); }
-        .icon-vessel { background-image: url('./assets/UI/vessel.png'); }
 
         /* 🎒 ANIMATIONS */
         .cell-piece {
@@ -278,6 +155,100 @@
             80% { transform: translate(3px, 4px); }
         }
 
+        /* Стили для иконок внутри правил */
+        .inline-icon {
+            display: inline-block;
+            width: 22px; height: 22px;
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+            vertical-align: middle; image-rendering: pixelated; margin: 0 4px;
+        }
+
+        .piece-player { background-image: url("./assets/player/spr_king_white.png"); }
+        .piece-pawn   { background-image: url("./assets/enemy/spr_pawn_black.png"); }
+        .piece-knight { background-image: url("./assets/enemy/spr_knight_black.png"); } 
+        .piece-rook   { background-image: url("./assets/enemy/spr_rook_black.png"); }
+        .piece-bishop { background-image: url("./assets/enemy/spr_bishop_black.png"); }
+        .piece-queen  { background-image: url("./assets/enemy/spr_queen_black.png"); }
+
+        .overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92); flex-direction: column; align-items: center; 
+            justify-content: center; z-index: 10; padding: 20px; box-sizing: border-box;
+            overflow-y: auto;
+        }
+        
+        #main-menu { display: flex; background: #0d0d0d; }
+        .menu-container {
+            text-align: center; background: #161616; padding: 30px; 
+            border-radius: 15px; border: 2px solid #b22222;
+            box-shadow: 0 0 35px rgba(178,34,34,0.4); max-width: 400px; width: 100%; box-sizing: border-box;
+        }
+        .menu-container button { width: 100%; margin-bottom: 10px; }
+        #high-score-display { color: #ffd700; font-size: 1.2rem; margin-top: 10px; margin-bottom: 20px; font-weight: bold;}
+
+        /* 🛒 MERCHANT SHOP */
+        .merchant-title { color: #ff4d4d; text-shadow: 0 0 15px #ff0000; font-size: 2rem; margin-top: 0; margin-bottom: 5px; text-align: center; }
+        .merchant-subtitle { color: #888; font-style: italic; margin-bottom: 20px; text-align: center; font-size: 0.9rem; }
+        .shop-card {
+            background: #1a1111; border: 2px solid #552222; color: #fff;
+            padding: 15px; margin: 8px; border-radius: 12px; width: 240px;
+            text-align: center; transition: 0.2s; position: relative;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5); box-sizing: border-box;
+        }
+        .shop-card:hover:not(.sold-out) { border-color: #ff4d4d; box-shadow: 0 0 25px rgba(255,77,77,0.3); }
+        .shop-card h3 { color: #ffd700; margin-top: 0; font-size: 1.1rem; }
+        .shop-card .price { color: #ff4d4d; font-weight: bold; font-size: 1.05rem; margin-top: 10px; }
+        .shop-card button { width: 100%; padding: 8px; font-size: 0.95rem; margin-top: 10px; }
+        .shop-card.sold-out { opacity: 0.3; cursor: not-allowed; }
+
+        /* 🎒 ITEM SWAP */
+        .swap-dialog {
+            background: #1c1313; border: 2px solid #ff4d4d; padding: 20px;
+            border-radius: 12px; text-align: center; max-width: 320px; width: 100%;
+            box-shadow: 0 0 30px rgba(255,0,0,0.4); box-sizing: border-box;
+        }
+        .swap-dialog h3 { color: #ff4d4d; margin-top: 0; }
+        .swap-dialog p { font-size: 0.95rem; color: #ddd; margin-bottom: 20px; line-height: 1.4; }
+        .swap-buttons { display: flex; gap: 10px; justify-content: center; }
+        .swap-buttons button { margin-top: 0; width: 110px; font-size: 0.9rem; padding: 8px; }
+
+        #help-screen .modal {
+            background: #1c1c1c; border: 2px solid #555; padding: 20px; 
+            border-radius: 12px; max-width: 500px; line-height: 1.4; font-size: 0.95rem;
+            box-shadow: 0 0 30px rgba(255,255,255,0.1); box-sizing: border-box;
+        }
+        #help-screen h3 { color: #ffd700; margin-top: 12px; margin-bottom: 4px; }
+
+        .upgrade-card {
+            background: #1a1a1a; border: 2px solid #b22222; color: #fff;
+            padding: 20px; margin: 10px; border-radius: 12px; cursor: pointer;
+            width: 100%; max-width: 300px; text-align: center; transition: 0.2s;
+            box-shadow: 0 0 20px rgba(178,34,34,0.3); box-sizing: border-box;
+        }
+        .upgrade-card:hover { background: #2a2a2a; box-shadow: 0 0 30px rgba(178,34,34,0.6); }
+        .upgrade-card h3 { color: #ff4d4d; margin-top: 0; font-size: 1.15rem; }
+        .upgrade-card p { font-size: 0.9rem; margin-bottom: 0; }
+
+        #game-over { background: rgba(178,34,34,0.92); color: #fff; text-align: center; }
+        #layer-popup { color: #ffd700; font-size: 1.6rem; font-weight: bold; text-shadow: 0 0 10px #ff0000; display: none; margin-bottom: 10px; text-align: center; position: fixed; top: 15%; z-index: 5; pointer-events: none;}
+
+        /* 📱 RESPONSIVE */
+        @media (max-width: 600px) {
+            h1 { font-size: 1.6rem; }
+            #ui-panel { padding: 8px 10px; gap: 10px; font-size: 0.9rem; }
+            #ui-wrapper { flex-direction: row; justify-content: space-between; align-items: center; }
+            #menu-btn { padding: 6px 12px; font-size: 0.9rem; }
+            
+            .cell { width: 40px; height: 40px; }
+            #board { border-width: 4px; outline-width: 2px; }
+            .valid-move::after { width: 12px; height: 12px; }
+            .valid-capture::after { font-size: 0.85rem; }
+            .valid-target::after { font-size: 1rem; }
+
+            .shop-card { width: 100%; max-width: 280px; }
+            #shop-container { flex-direction: column; align-items: center; }
+        }
+
         @media (max-width: 380px) {
             .cell { width: 34px; height: 34px; }
             #ui-panel { font-size: 0.8rem; }
@@ -292,24 +263,24 @@
             <h1 style="margin-top: 0; font-size: 2.5rem;">Blood & Void</h1>
             <p style="color: #888; font-style: italic; margin-bottom: 5px;">Chess Roguelite</p>
             
-            <div id="high-score-display"> <span class="icon icon-trofy"></span> High Score: Wave 1</div>
+            <div id="high-score-display">🏆 High Score: Wave 1</div>
             
-            <button onclick="startGame()"><span class="icon icon-play"></span>  Play</button>
-            <button onclick="toggleHelp(true, true)"><span class="icon icon-rules"></span> Rules</button>
+            <button onclick="startGame()">⚔️ Play</button>
+            <button onclick="toggleHelp(true, true)">📜 Rules</button>
             <button onclick="resetHighScore()" style="background:#222; color:#bbb; border-color:#444; font-size:0.85rem; padding:6px;">Reset Record</button>
         </div>
     </div>
 
     <div id="game-container">
         <div id="layer-popup">BOARD EXPANDED!</div>
-        <h1>Blood & Void <span class="icon icon-blood"></span></h1>
+        <h1>Blood & Void 🩸</h1>
         
         <div id="ui-wrapper">
             <div id="ui-panel">
                 <div class="stat level-stat">🗺️ Wave: <span id="level-val">1</span></div>
-                <div class="stat hp-stat"><span class="icon icon-hp"></span> HP: <span id="hp-val">3</span>/<span id="max-hp">3</span></div>
-                <div class="stat blood-stat"><span class="icon icon-blood"></span> Blood: <span id="blood-val">5</span></div>
-
+                <div class="stat hp-stat">❤️ HP: <span id="hp-val">3</span>/<span id="max-hp">3</span></div>
+                <div class="stat blood-stat">🩸 Blood: <span id="blood-val">5</span></div>
+                
                 <div id="inventory-container"></div>
             </div>
             <button id="menu-btn" onclick="openMenuFromGame()">⚙️ Menu</button>
@@ -321,14 +292,14 @@
     <div id="merchant-screen" class="overlay">
         <h2 class="merchant-title">Void Shop 🖤</h2>
         <p class="merchant-subtitle">"Blood is an excellent currency in these depths..."</p>
-        <div style="color: #ff4d4d; font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; text-align: center;">Your Blood: <span id="merchant-blood-val">0</span><span class="icon icon-blood"></span></div>
+        <div style="color: #ff4d4d; font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; text-align: center;">Your Blood: <span id="merchant-blood-val">0</span>🩸</div>
         <div id="shop-container" style="display: flex; justify-content: center; flex-wrap: wrap;"></div>
         <button onclick="closeShop()" style="background: #222; border-color: #666; margin-top: 20px;">Continue Journey ➔</button>
     </div>
 
     <div id="swap-screen" class="overlay" style="z-index: 20; background: rgba(0,0,0,0.85);">
         <div class="swap-dialog">
-            <h3><span class="icon icon-backpack"></span> Inventory Full!</h3>
+            <h3>🎒 Inventory Full!</h3>
             <p>You have no free slots left. Do you want to destroy one of your old items to buy the new one?</p>
             <div id="swap-items-choice" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;"></div>
             <div class="swap-buttons">
@@ -341,7 +312,7 @@
         <div class="modal" onclick="event.stopPropagation()">
             <h2 style="color: #ff4d4d; margin-top: 0; text-align: center;">Rules of the Void</h2>
             
-            <h3> <span class="icon icon-important"></span> Board Growth & Enemies</h3>
+            <h3>🧠 Board Growth & Enemies</h3>
             <p>You are the King <span class="inline-icon piece-player"></span>. The further you go, the deeper you fall into the Void, expanding the battlefield:</p>
             <ul>
                 <li><strong>Waves 1-4:</strong> 6x6 Board. Enemies: Pawns <span class="inline-icon piece-pawn"></span> and Knights <span class="inline-icon piece-knight"></span>.</li>
@@ -349,12 +320,12 @@
                 <li><strong>Waves 10-14:</strong> 8x8 Board. Bishop <span class="inline-icon piece-bishop"></span> appears.</li>
                 <li><strong>Waves 15+:</strong> 9x9 Board. Full army of the Void.</li>
             </ul>
-
-            <h3> <span class="icon icon-allart"></span> Critical Rule: Pawn Promotion</h3>
-            <p>If an enemy Pawn <span class="inline-icon piece-pawn"></span> reaches the very bottom of the board, it will promote to a Queen <span class="inline-icon piece-queen"></span>!</p>
-             
-            <h3> <span class="icon icon-blood"></span> Resources</h3>
-            <p>Every single move costs <strong>1 <span class="icon icon-blood"></span> Blood</strong> (unless upgraded). Defeating an enemy restores your Blood. Tiles crumble into the <strong>Void <span class="icon icon-void"></span></strong> behind you.</p>
+            
+            <h3>⚠️ Critical Rule: Pawn Promotion</h3>
+            <p>If an enemy Pawn <span class="inline-icon piece-pawn"></span> reaches the very bottom of the board, it will **promote to a Queen <span class="inline-icon piece-queen"></span>**! The Queen strikes in all directions with unlimited range. Don't let them pass!</p>
+            
+            <h3>🩸 Resources</h3>
+            <p>Every single move costs <strong>1 🩸 Blood</strong> (unless upgraded). Defeating an enemy restores your Blood. Tiles crumble into the <strong>Void 🕳️</strong> behind you.</p>
             
             <div style="text-align: center;"><button onclick="toggleHelp(false)">Back</button></div>
         </div>
@@ -371,7 +342,7 @@
         <button onclick="backToMenu()">To Main Menu</button>
     </div>
 
-     <script>
+    <script>
         let BOARD_SIZE = 6; 
         let boardState = []; 
         let voidState = [];  
@@ -396,72 +367,10 @@
         let pendingShopItem = null;    
         let frozenEnemiesTurn = false;
 
-        // ====== МОДУЛЬ ЗВУКОВЫХ ЭФФЕКТОВ (Web Audio API) ======
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            const now = audioCtx.currentTime;
-
-            switch(type) {
-                case 'move': // Обычный шаг (короткий мягкий звук)
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(150, now);
-                    osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
-                    gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.linearRampToValueAtTime(0, now + 0.1);
-                    osc.start(now); osc.stop(now + 0.1);
-                    break;
-                    
-                case 'capture': // Взятие фигуры (сочный удар по врагу)
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(300, now);
-                    osc.frequency.linearRampToValueAtTime(80, now + 0.2);
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.linearRampToValueAtTime(0, now + 0.2);
-                    osc.start(now); osc.stop(now + 0.2);
-                    break;
-                    
-                case 'damage': // Получение урона игроком (низкий болезненный хруст)
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(120, now);
-                    osc.frequency.linearRampToValueAtTime(40, now + 0.25);
-                    gain.gain.setValueAtTime(0.3, now);
-                    gain.gain.linearRampToValueAtTime(0, now + 0.25);
-                    osc.start(now); osc.stop(now + 0.25);
-                    break;
-                    
-                case 'victory': // Победа в волне (восходящий победный арпеджио)
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(200, now);
-                    osc.frequency.setValueAtTime(300, now + 0.08);
-                    osc.frequency.setValueAtTime(400, now + 0.16);
-                    osc.frequency.setValueAtTime(600, now + 0.24);
-                    gain.gain.setValueAtTime(0.1, now);
-                    gain.gain.linearRampToValueAtTime(0, now + 0.4);
-                    osc.start(now); osc.stop(now + 0.4);
-                    break;
-                    
-                case 'gameover': // Проигрыш (разочаровывающий нисходящий звук)
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(180, now);
-                    osc.frequency.linearRampToValueAtTime(50, now + 0.6);
-                    gain.gain.setValueAtTime(0.3, now);
-                    gain.gain.linearRampToValueAtTime(0, now + 0.6);
-                    osc.start(now); osc.stop(now + 0.6);
-                    break;
-            }
-        }
         const SHOP_ITEMS = [
             { id: 'hourglass', title: '⏳ Hourglass of Time', emoji: '⏳', text: 'Freezes enemies for the next turn. Allows you to move twice.', price: 10, type: 'instant_use' },
             { id: 'bomb', title: '💣 Blood Bomb', emoji: '💣', text: 'Destroys ANY enemy on the selected tile, turning it into the Void.', price: 8, type: 'target_cell' },
-            { id: 'elixir', title: '🍷 Elixir of Life', emoji: '🍷', text: 'Instantly restores 1 <span class="icon icon-hp"> HP (cannot exceed your maximum HP).', price: 6, type: 'instant_use' }
+            { id: 'elixir', title: '🍷 Elixir of Life', emoji: '🍷', text: 'Instantly restores 1 ❤️ HP (cannot exceed your maximum HP).', price: 6, type: 'instant_use' }
         ];
 
         const ENEMY_PRESETS = {
@@ -827,14 +736,12 @@
             if (playerPieceEl) {
                 if (moveData.isCapture) {
                     playerBlood += BLOOD_PER_KILL;
-                    playSound('capture');
                     const targetCellEl = document.querySelector(`.cell[data-row="${moveData.r}"][data-col="${moveData.c}"]`);
                     if (targetCellEl) targetCellEl.classList.add('animate-blood-splatter');
                     
                     // Резкий выпад при атаке
                     playerPieceEl.style.transform = `translate(${diffC * 100}%, ${diffR * 100}%) scale(1.1)`;
                 } else {
-                    playSound('move');
                     // Плавное скольжение при обычном перемещении
                     playerPieceEl.style.transform = `translate(${diffC * 100}%, ${diffR * 100}%)`;
                 }
@@ -1047,7 +954,6 @@
 
             if (playerHit) {
                 document.body.classList.add('shake-screen');
-                playSound('damage');
                 playerHp--;
                 updateUI();
                 setTimeout(() => document.body.classList.remove('shake-screen'), 250);
@@ -1060,7 +966,6 @@
 
         function endLevelVictory() {
             saveHighScore(currentLevel);
-            playSound('victory');
             currentLevel++;
             
             if (currentLevel % 3 === 1 && currentLevel > 1) {
@@ -1084,7 +989,7 @@
                 card.innerHTML = `
                     <h3>${item.title}</h3>
                     <p style="font-size:0.85rem; color:#ccc; min-height:35px; margin: 8px 0;">${item.text}</p>
-                    <div class="price">${item.price} <span class="icon icon-blood"> </span></div>
+                    <div class="price">${item.price} 🩸</div>
                     <button onclick="tryBuyItem('${item.id}', ${item.price})">Buy</button>
                 `;
                 container.appendChild(card);
@@ -1159,22 +1064,22 @@
         }
 
         const ALL_UPGRADES = [
-            { id: 'heal', title: '<span class="icon icon-heal"> Pure Transfusion', text: 'Fully restores HP to maximum. Cost: 2 <span class="icon icon-blood"> </span>', action: () => { 
+            { id: 'heal', title: '💉 Pure Transfusion', text: 'Fully restores HP to maximum. Cost: 2 🩸', action: () => { 
                 if(playerBlood >= 2) { playerHp = maxHp; playerBlood -= 2; } 
             } },
-            { id: 'ritual', title: '<span class="icon icon-blood"> Blood Ritual', text: 'Sacrifice 1 HP for a full Blood refill (+10 <span class="icon icon-blood"> </span>)', action: () => { 
+            { id: 'ritual', title: '🩸 Blood Ritual', text: 'Sacrifice 1 HP for a full Blood refill (+10 🩸)', action: () => { 
                 if(playerHp > 1) { playerHp -= 1; playerBlood += 10; } 
             } },
-            { id: 'max_hp', title: '<span class="icon icon-vessel"> Blood Vessel', text: '+1 Max HP. Passive: Movements no longer cost Blood!', action: () => { 
+            { id: 'max_hp', title: '🏺 Blood Vessel', text: '+1 Max HP. Passive: Movements no longer cost Blood!', action: () => { 
                 maxHp++; BLOOD_COST_PER_MOVE = 0;
             } },
-            { id: 'knight', title: '<span class="inline-icon piece-knight"> Void Mutation', text: 'King moves like a Knight and leaps over the Void. Cost: -1 Max HP!', action: () => { 
+            { id: 'knight', title: '🌌 Void Mutation', text: 'King moves like a Knight and leaps over the Void. Cost: -1 Max HP!', action: () => { 
                 canMoveLikeKnight = true; if(maxHp > 1) { maxHp--; playerHp = Math.min(playerHp, maxHp); }
             } },
-            { id: 'blood_greed', title: '<span class="icon icon-greed"> Void Greed', text: '+3 <span class="icon icon-blood"> </span> for each enemy kill.', action: () => { 
+            { id: 'blood_greed', title: '💰 Void Greed', text: '+3 🩸 for each enemy kill.', action: () => { 
                 BLOOD_PER_KILL += 3; 
             } },
-            { id: 'bag_ext', title: '<span class="icon icon-backpack"> Dimensional Pocket', text: 'Increases inventory capacity by +1 slot (Max 3).', action: () => {
+            { id: 'bag_ext', title: '🎒 Dimensional Pocket', text: 'Increases inventory capacity by +1 slot (Max 3).', action: () => {
                 maxInventorySlots = Math.min(3, maxInventorySlots + 1);
             } }
         ];
@@ -1207,7 +1112,6 @@
 
         function gameOver(reason) {
             saveHighScore(currentLevel);
-            playSound('gameover');
             document.getElementById('score-report').innerText = `${reason} You finished on Wave: ${currentLevel}.`;
             document.getElementById('game-over').style.display = 'flex';
         }
