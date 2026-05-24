@@ -2,41 +2,64 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=no">
     <title>Blood & Void: Chess Roguelite</title>
     <style>
         body {
             background-color: #0d0d0d; color: #e0e0e0;
             font-family: 'Verdana', sans-serif;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100vh; margin: 0;
+            min-height: 100vh; margin: 0; padding: 10px;
+            box-sizing: border-box;
             position: relative;
         }
-        h1 { margin-top: 15px; margin-bottom: 5px; color: #b22222; text-shadow: 0 0 10px #ff0000; font-size: 2.5rem;}
+        h1 { margin-top: 10px; margin-bottom: 5px; color: #b22222; text-shadow: 0 0 10px #ff0000; font-size: 2rem; text-align: center;}
         
-        #game-container { display: none; flex-direction: column; align-items: center; }
+        #game-container { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 600px; }
         
-        #ui-wrapper { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        #ui-wrapper { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 15px; width: 100%; }
         
         #ui-panel {
-            background: #222; border-radius: 10px; padding: 12px 20px;
-            font-size: 1.1rem; display: flex; gap: 20px;
-            box-shadow: 0 0 15px rgba(255,0,0,0.2); border: 1px solid #444;
+            background: #222; border-radius: 10px; padding: 10px 15px;
+            font-size: 1rem; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; justify-content: center;
+            box-shadow: 0 0 15px rgba(255,0,0,0.2); border: 1px solid #444; width: 100%; box-sizing: border-box;
         }
-        .stat { display: flex; align-items: center; gap: 5px; }
-        .blood-stat { color: #ff4d4d; font-weight: bold; }
+        .stat { display: flex; align-items: center; gap: 5px; font-weight: bold; }
+        .blood-stat { color: #ff4d4d; }
         .level-stat { color: #ffd700; }
+
+        /* 🔥 СТИЛИ ДЛЯ ИНВЕНТАРЯ СЛОТОВ */
+        #inventory-container { display: flex; gap: 8px; align-items: center; }
+        .item-slot {
+            background: #111; border: 2px dashed #555; width: 42px; height: 42px;
+            border-radius: 6px; font-size: 1.1rem; cursor: pointer;
+            transition: 0.2s; user-select: none; display: flex; align-items: center; justify-content: center;
+            position: relative; box-sizing: border-box;
+        }
+        .item-slot:hover { border-color: #888; background: #1a1a1a; }
+        .item-slot.ready {
+            border-color: #ff4d4d; box-shadow: 0 0 8px rgba(255,77,77,0.3);
+            background: #2a0808; border-style: solid;
+        }
+        .item-slot.ready:hover { background: #400c0c; transform: scale(1.05); }
+        .item-slot.targeting {
+            background: #b22222; color: #fff; border-color: #fff; animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; }
+        }
         
         button {
-            padding: 12px 28px; font-size: 1.1rem; cursor: pointer;
+            padding: 10px 20px; font-size: 1rem; cursor: pointer;
             background: #000; color: #ffd700; border: 2px solid #ffd700; border-radius: 8px;
-            font-weight: bold; text-transform: uppercase; transition: 0.2s; margin-top: 15px;
+            font-weight: bold; text-transform: uppercase; transition: 0.2s; margin-top: 10px;
         }
         button:hover { background: #ffd700; color: #000; box-shadow: 0 0 15px #ffd700; }
         
         #menu-btn {
             background: #333; color: #fff; border: 1px solid #666; 
-            padding: 12px 15px; border-radius: 10px; font-size: 1.1rem;
+            padding: 8px 16px; border-radius: 8px; font-size: 1rem;
             cursor: pointer; transition: 0.2s; font-weight: bold; margin-top: 0;
         }
         #menu-btn:hover { background: #b22222; border-color: #ff4d4d; box-shadow: 0 0 10px #ff0000; }
@@ -44,12 +67,11 @@
         /* 👑 АВТО-РАМКА ВОКРУГ ВСЕЙ ДОСКИ */
         #board {
             display: grid;
-            /* Коричневая рамка как на картинке, толщиной в 6px */
             border: 6px solid #4a2525; 
-            /* Черный пиксельный кант снаружи коричневой рамки */
             outline: 3px solid #1a0d0d;
             box-shadow: 0 15px 35px rgba(0,0,0,0.9);
             background: #000;
+            margin: 0 auto;
         }
         
         .cell {
@@ -63,7 +85,6 @@
             image-rendering: pixelated;
         }
         
-        /* ТЕПЕРЬ ВСЯ ДОСКА — ЧИСТЫЙ ШАХМАТНЫЙ УЗОР БЕЗ ИСКАЖЕНИЙ КРАЕВ */
         .tile-center-light { background-image: url('./assets/Board/tile_light.png'); }
         .tile-center-dark  { background-image: url('./assets/Board/tile_dark.png'); }
         
@@ -78,48 +99,79 @@
         .selected { background-color: rgba(255, 102, 102, 0.3) !important; box-shadow: inset 0 0 15px #b22222;}
         
         .valid-move::after {
-            content: ''; width: 18px; height: 18px;
+            content: ''; width: 16px; height: 16px;
             background-color: rgba(178, 34, 34, 0.7);
             border-radius: 50%; position: absolute;
             box-shadow: 0 0 10px #ff0000;
         }
         .valid-capture::after {
-            content: '⚔️'; font-size: 1.1rem; position: absolute; opacity: 0.8;
+            content: '⚔️'; font-size: 1rem; position: absolute; opacity: 0.8;
+        }
+        .valid-target::after {
+            content: '🎯'; font-size: 1.2rem; position: absolute; animation: pulse 0.5s infinite;
         }
 
         .overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); flex-direction: column; align-items: center; 
-            justify-content: center; z-index: 10;
+            background: rgba(0,0,0,0.92); flex-direction: column; align-items: center; 
+            justify-content: center; z-index: 10; padding: 20px; box-sizing: border-box;
+            overflow-y: auto;
         }
         
         #main-menu { display: flex; background: #0d0d0d; }
         .menu-container {
-            text-align: center; background: #161616; padding: 40px; 
+            text-align: center; background: #161616; padding: 30px; 
             border-radius: 15px; border: 2px solid #b22222;
-            box-shadow: 0 0 35px rgba(178,34,34,0.4); max-width: 400px; width: 100%;
+            box-shadow: 0 0 35px rgba(178,34,34,0.4); max-width: 400px; width: 100%; box-sizing: border-box;
         }
         .menu-container button { width: 100%; margin-bottom: 10px; }
-        #high-score-display { color: #ffd700; font-size: 1.3rem; margin-top: 15px; margin-bottom: 25px; font-weight: bold;}
+        #high-score-display { color: #ffd700; font-size: 1.2rem; margin-top: 10px; margin-bottom: 20px; font-weight: bold;}
+
+        /* 🔥 СТИЛИ ДЛЯ ЛАВКИ ТОРГОВЦА */
+        .merchant-title { color: #ff4d4d; text-shadow: 0 0 15px #ff0000; font-size: 2rem; margin-top: 0; margin-bottom: 5px; text-align: center; }
+        .merchant-subtitle { color: #888; font-style: italic; margin-bottom: 20px; text-align: center; font-size: 0.9rem; }
+        .shop-card {
+            background: #1a1111; border: 2px solid #552222; color: #fff;
+            padding: 15px; margin: 8px; border-radius: 12px; width: 240px;
+            text-align: center; transition: 0.2s; position: relative;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5); box-sizing: border-box;
+        }
+        .shop-card:hover:not(.sold-out) { border-color: #ff4d4d; box-shadow: 0 0 25px rgba(255,77,77,0.3); }
+        .shop-card h3 { color: #ffd700; margin-top: 0; font-size: 1.1rem; }
+        .shop-card .price { color: #ff4d4d; font-weight: bold; font-size: 1.05rem; margin-top: 10px; }
+        .shop-card button { width: 100%; padding: 8px; font-size: 0.95rem; margin-top: 10px; }
+        .shop-card.sold-out { opacity: 0.3; cursor: not-allowed; }
+
+        /* 🔥 ОКНО ПОДТВЕРЖДЕНИЯ ОБМЕНА ПРЕДМЕТА */
+        .swap-dialog {
+            background: #1c1313; border: 2px solid #ff4d4d; padding: 20px;
+            border-radius: 12px; text-align: center; max-width: 320px; width: 100%;
+            box-shadow: 0 0 30px rgba(255,0,0,0.4); box-sizing: border-box;
+        }
+        .swap-dialog h3 { color: #ff4d4d; margin-top: 0; }
+        .swap-dialog p { font-size: 0.95rem; color: #ddd; margin-bottom: 20px; line-height: 1.4; }
+        .swap-buttons { display: flex; gap: 10px; justify-content: center; }
+        .swap-buttons button { margin-top: 0; width: 110px; font-size: 0.9rem; padding: 8px; }
 
         #help-screen .modal {
-            background: #1c1c1c; border: 2px solid #555; padding: 30px; 
-            border-radius: 12px; max-width: 500px; line-height: 1.5;
-            box-shadow: 0 0 30px rgba(255,255,255,0.1);
+            background: #1c1c1c; border: 2px solid #555; padding: 20px; 
+            border-radius: 12px; max-width: 500px; line-height: 1.4; font-size: 0.95rem;
+            box-shadow: 0 0 30px rgba(255,255,255,0.1); box-sizing: border-box;
         }
-        #help-screen h3 { color: #ffd700; margin-top: 15px; margin-bottom: 5px; }
+        #help-screen h3 { color: #ffd700; margin-top: 12px; margin-bottom: 4px; }
 
         .upgrade-card {
             background: #1a1a1a; border: 2px solid #b22222; color: #fff;
-            padding: 25px; margin: 15px; border-radius: 12px; cursor: pointer;
-            width: 320px; text-align: center; transition: 0.2s;
-            box-shadow: 0 0 20px rgba(178,34,34,0.3);
+            padding: 20px; margin: 10px; border-radius: 12px; cursor: pointer;
+            width: 100%; max-width: 300px; text-align: center; transition: 0.2s;
+            box-shadow: 0 0 20px rgba(178,34,34,0.3); box-sizing: border-box;
         }
-        .upgrade-card:hover { transform: translateY(-5px); background: #2a2a2a; box-shadow: 0 0 30px rgba(178,34,34,0.6); }
-        .upgrade-card h3 { color: #ff4d4d; margin-top: 0; }
+        .upgrade-card:hover { background: #2a2a2a; box-shadow: 0 0 30px rgba(178,34,34,0.6); }
+        .upgrade-card h3 { color: #ff4d4d; margin-top: 0; font-size: 1.15rem; }
+        .upgrade-card p { font-size: 0.9rem; margin-bottom: 0; }
 
-        #game-over { background: rgba(178,34,34,0.85); color: #fff; text-align: center; }
-        #layer-popup { color: #ffd700; font-size: 2rem; font-weight: bold; text-shadow: 0 0 10px #ff0000; display: none; margin-bottom: 10px; text-align: center; }
+        #game-over { background: rgba(178,34,34,0.92); color: #fff; text-align: center; }
+        #layer-popup { color: #ffd700; font-size: 1.6rem; font-weight: bold; text-shadow: 0 0 10px #ff0000; display: none; margin-bottom: 10px; text-align: center; position: fixed; top: 15%; z-index: 5; pointer-events: none;}
         
         .cell-piece {
             width: 85%; height: 85%;
@@ -133,20 +185,45 @@
         .piece-rook   { background-image: url("./assets/enemy/spr_rook_black.png"); }
         .piece-bishop { background-image: url("./assets/enemy/spr_bishop_black.png"); }
         .piece-queen  { background-image: url("./assets/enemy/spr_queen_black.png"); }
+
+        /* 🔥 МОБИЛЬНАЯ АДАПТАЦИЯ (МЕДИА-ЗАПРОСЫ) */
+        @media (max-width: 600px) {
+            h1 { font-size: 1.6rem; }
+            #ui-panel { padding: 8px 10px; gap: 10px; font-size: 0.9rem; }
+            #ui-wrapper { flex-direction: row; justify-content: space-between; align-items: center; }
+            #menu-btn { padding: 6px 12px; font-size: 0.9rem; }
+            
+            /* Сжатие ячеек для экранов смартфонов */
+            .cell { width: 40px; height: 40px; }
+            #board { border-width: 4px; outline-width: 2px; }
+            .valid-move::after { width: 12px; height: 12px; }
+            .valid-capture::after { font-size: 0.85rem; }
+            .valid-target::after { font-size: 1rem; }
+
+            .shop-card { width: 100%; max-width: 280px; }
+            #shop-container { flex-direction: column; align-items: center; }
+        }
+
+        @media (max-width: 380px) {
+            /* Предельное сжатие для совсем маленьких дисплеев (iPhone SE и т.д.) */
+            .cell { width: 34px; height: 34px; }
+            #ui-panel { font-size: 0.8rem; }
+            .item-slot { width: 34px; height: 34px; font-size: 0.95rem; }
+        }
     </style>
 </head>
 <body>
 
     <div id="main-menu" class="overlay" style="display: flex;">
         <div class="menu-container">
-            <h1 style="margin-top: 0; font-size: 3rem;">Blood & Void</h1>
+            <h1 style="margin-top: 0; font-size: 2.5rem;">Blood & Void</h1>
             <p style="color: #888; font-style: italic; margin-bottom: 5px;">Chess Roguelite</p>
             
             <div id="high-score-display">🏆 Рекорд: Волна 1</div>
             
             <button onclick="startGame()">⚔️ Играть</button>
             <button onclick="toggleHelp(true, true)">📜 Правила</button>
-            <button onclick="resetHighScore()" style="background:#222; color:#bbb; border-color:#444; font-size:0.9rem; padding:8px;">Сбросить рекорд</button>
+            <button onclick="resetHighScore()" style="background:#222; color:#bbb; border-color:#444; font-size:0.85rem; padding:6px;">Сбросить рекорд</button>
         </div>
     </div>
 
@@ -157,13 +234,34 @@
         <div id="ui-wrapper">
             <div id="ui-panel">
                 <div class="stat level-stat">🗺️ Волна: <span id="level-val">1</span></div>
-                <div class="stat hp-stat">❤️ ХП: <span id="hp-val">3</span> / <span id="max-hp">3</span></div>
+                <div class="stat hp-stat">❤️ ХП: <span id="hp-val">3</span>/<span id="max-hp">3</span></div>
                 <div class="stat blood-stat">🩸 Кровь: <span id="blood-val">5</span></div>
+                
+                <div id="inventory-container"></div>
             </div>
             <button id="menu-btn" onclick="openMenuFromGame()">⚙️ Меню</button>
         </div>
         
         <div id="board"></div>
+    </div>
+
+    <div id="merchant-screen" class="overlay">
+        <h2 class="merchant-title">Лавка Бездны 🖤</h2>
+        <p class="merchant-subtitle">"Кровь — отличная валюта в этих глубинах..."</p>
+        <div style="color: #ff4d4d; font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; text-align: center;">Ваша Кровь: <span id="merchant-blood-val">0</span>🩸</div>
+        <div id="shop-container" style="display: flex; justify-content: center; flex-wrap: wrap;"></div>
+        <button onclick="closeShop()" style="background: #222; border-color: #666; margin-top: 20px;">Продолжить путь ➔</button>
+    </div>
+
+    <div id="swap-screen" class="overlay" style="z-index: 20; background: rgba(0,0,0,0.85);">
+        <div class="swap-dialog">
+            <h3>🎒 Сумка заполнена!</h3>
+            <p>У вас нет свободных слотов. Желаете уничтожить один из старых предметов ради покупки нового?</p>
+            <div id="swap-items-choice" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;"></div>
+            <div class="swap-buttons">
+                <button onclick="cancelSwap()" style="background:#333; border-color:#666; color:#fff;">Отмена</button>
+            </div>
+        </div>
     </div>
 
     <div id="help-screen" class="overlay" onclick="toggleHelp(false)">
@@ -190,13 +288,13 @@
     </div>
 
     <div id="upgrade-screen" class="overlay">
-        <h2>Жертва принесена. Выберите дар:</h2>
-        <div id="upgrades-container"></div>
+        <h2 style="text-align:center; font-size:1.4rem;">Жертва принесена. Выберите дар:</h2>
+        <div id="upgrades-container" style="display:flex; flex-direction:column; align-items:center; width:100%;"></div>
     </div>
 
     <div id="game-over" class="overlay">
-        <h2 style="font-size: 3.5rem; margin: 0; text-shadow: 0 5px 10px #000;">БЕЗДНА ПОГЛОТИЛА ВАС</h2>
-        <p id="score-report" style="font-size: 1.5rem; margin: 15px 0;"></p>
+        <h2 style="font-size: 2.5rem; margin: 0; text-shadow: 0 5px 10px #000;">БЕЗДНА ПОГЛОТИЛА ВАС</h2>
+        <p id="score-report" style="font-size: 1.2rem; margin: 15px 0;"></p>
         <button onclick="backToMenu()">В главное меню</button>
     </div>
 
@@ -207,6 +305,7 @@
         let playerPos = { r: 5, c: 2 };
         let selectedCell = null;
         let validMoves = [];
+        let validItemTargets = []; 
         
         let playerHp = 3;
         let maxHp = 3;
@@ -217,6 +316,19 @@
         let BLOOD_PER_KILL = 4;
         let BLOOD_COST_PER_MOVE = 1; 
         let isOpenedFromMenu = false;
+
+        // 🔥 СИСТЕМА ПРЕДМЕТОВ И СУМКИ
+        let inventory = [];            // Хранилище купленных предметов
+        let maxInventorySlots = 1;     // Стартовый размер инвентаря
+        let targetingItemIdx = null;   // Какой по счету предмет сейчас прицеливается
+        let pendingShopItem = null;    // Временный буфер для обмена
+        let frozenEnemiesTurn = false;
+
+        const SHOP_ITEMS = [
+            { id: 'hourglass', title: '⏳ Часы Времени', emoji: '⏳', text: 'Замораживают врагов на следующий ход. Позволяет сходить дважды.', price: 10, type: 'instant_use' },
+            { id: 'bomb', title: '💣 Кровавая Бомба', emoji: '💣', text: 'Уничтожает ЛЮБОГО врага на выбранной клетке, превращая её в Бездну.', price: 8, type: 'target_cell' },
+            { id: 'elixir', title: '🍷 Эликсир Жизни', emoji: '🍷', text: 'Мгновенно восстанавливает 1 ❤️ ХП (не выше максимума).', price: 6, type: 'instant_use' }
+        ];
 
         const ENEMY_PRESETS = {
             1:  { pawn: 2, knight: 0, rook: 0, bishop: 0 },
@@ -285,7 +397,6 @@
             const screen = document.getElementById('help-screen');
             screen.style.display = show ? 'flex' : 'none';
             if (!show && isOpenedFromMenu) document.getElementById('main-menu').style.display = 'flex';
-            if (show && fromMenu) document.getElementById('main-menu').style.display = 'none';
         }
 
         function triggerPopup(text) {
@@ -310,9 +421,14 @@
         function createBoardDOM() {
             const boardEl = document.getElementById('board');
             boardEl.innerHTML = '';
-            boardEl.style.gridTemplateColumns = `repeat(${BOARD_SIZE}, 62px)`;
-            boardEl.style.gridTemplateRows = `repeat(${BOARD_SIZE}, 62px)`;
+            boardEl.style.gridTemplateColumns = `repeat(${BOARD_SIZE}, 1fr)`;
+            boardEl.style.gridTemplateRows = `repeat(${BOARD_SIZE}, 1fr)`;
             
+            // Динамический расчет ширины/высоты доски для мобильных через CSS переменные или JS
+            let currentCellSize = window.innerWidth <= 380 ? 34 : (window.innerWidth <= 600 ? 40 : 62);
+            boardEl.style.width = `${currentCellSize * BOARD_SIZE}px`;
+            boardEl.style.height = `${currentCellSize * BOARD_SIZE}px`;
+
             for (let r = 0; r < BOARD_SIZE; r++) {
                 for (let c = 0; c < BOARD_SIZE; c++) {
                     const cell = document.createElement('div');
@@ -324,6 +440,14 @@
                 }
             }
         }
+
+        // Авто-подгон сетки при повороте экрана смартфона
+        window.addEventListener('resize', () => {
+            if (document.getElementById('game-container').style.display === 'flex') {
+                createBoardDOM();
+                render();
+            }
+        });
 
         function startLevel() {
             updateUI();
@@ -363,6 +487,29 @@
             document.getElementById('hp-val').innerText = playerHp;
             document.getElementById('max-hp').innerText = maxHp;
             document.getElementById('blood-val').innerText = playerBlood;
+            
+            // 🔥 РЕНДЕР ИНВЕНТАРЯ СЛОТОВ
+            const invContainer = document.getElementById('inventory-container');
+            invContainer.innerHTML = '';
+            for (let i = 0; i < maxInventorySlots; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'item-slot';
+                
+                if (inventory[i]) {
+                    slot.innerText = inventory[i].emoji;
+                    slot.title = inventory[i].title;
+                    if (targetingItemIdx === i) {
+                        slot.className = 'item-slot ready targeting';
+                    } else {
+                        slot.className = 'item-slot ready';
+                    }
+                    slot.addEventListener('click', () => useActiveItem(i));
+                } else {
+                    slot.innerText = '📦';
+                    slot.title = 'Пустой слот инвентаря';
+                }
+                invContainer.appendChild(slot);
+            }
         }
 
         function render() {
@@ -380,7 +527,6 @@
                     return; 
                 } else {
                     cell.className = 'cell';
-                    // Идеальный шахматный порядок для любого размера
                     if ((r + c) % 2 === 0) {
                         cell.classList.add('tile-center-light');
                     } else {
@@ -394,7 +540,7 @@
                     }
                 }
 
-                cell.classList.remove('selected', 'valid-move', 'valid-capture');
+                cell.classList.remove('selected', 'valid-move', 'valid-capture', 'valid-target');
                 if (selectedCell && selectedCell.r === r && selectedCell.c === c) cell.classList.add('selected');
                 
                 const moveData = validMoves.find(m => m.r === r && m.c === c);
@@ -402,10 +548,24 @@
                     if (moveData.isCapture) cell.classList.add('valid-capture');
                     else cell.classList.add('valid-move');
                 }
+
+                if (targetingItemIdx !== null && validItemTargets.some(t => t.r === r && t.c === c)) {
+                    cell.classList.add('valid-target');
+                }
             });
         }
 
         function onCellClick(r, c) {
+            // 🔥 ПРОВЕРКА ПРИЦЕЛИВАНИЯ ПРЕДМЕТОМ
+            if (targetingItemIdx !== null) {
+                if (validItemTargets.some(t => t.r === r && t.c === c)) {
+                    executeTargetedItem(r, c);
+                } else {
+                    targetingItemIdx = null; validItemTargets = []; updateUI(); render();
+                }
+                return;
+            }
+
             if (voidState[r][c]) return;
 
             if (boardState[r][c] && boardState[r][c].type === 'player') {
@@ -422,6 +582,60 @@
             }
 
             selectedCell = null; validMoves = []; render();
+        }
+
+        // 🔥 ИСПОЛЬЗОВАНИЕ АКТИВНОГО ПРЕДМЕТА ИЗ СЛОТА
+        function useActiveItem(index) {
+            if (targetingItemIdx !== null) {
+                targetingItemIdx = null; validItemTargets = []; updateUI(); render();
+                return;
+            }
+
+            const item = inventory[index];
+            if (!item) return;
+
+            if (item.type === 'instant_use') {
+                if (item.id === 'hourglass') {
+                    frozenEnemiesTurn = true;
+                    triggerPopup("⏳ ВРЕМЯ ЗАМЕРЛО! Враги пропустят ход!");
+                } else if (item.id === 'elixir') {
+                    if (playerHp >= maxHp) { triggerPopup("Здоровье уже на максимуме!"); return; }
+                    playerHp = Math.min(maxHp, playerHp + 1);
+                    triggerPopup("🍷 Восстановлено 1 ХП!");
+                }
+                inventory.splice(index, 1); // Удаляем использованный предмет
+                updateUI(); render();
+            } 
+            else if (item.type === 'target_cell') {
+                targetingItemIdx = index;
+                validItemTargets = [];
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    for (let c = 0; c < BOARD_SIZE; c++) {
+                        if (!voidState[r][c] && (playerPos.r !== r || playerPos.c !== c)) {
+                            validItemTargets.push({ r, c });
+                        }
+                    }
+                }
+                updateUI(); render();
+                triggerPopup("🎯 Выберите клетку для взрыва бомбы!");
+            }
+        }
+
+        // 🔥 ПРИМЕНЕНИЕ ЭФФЕКТА БОМБЫ
+        function executeTargetedItem(r, c) {
+            const item = inventory[targetingItemIdx];
+            if (item && item.id === 'bomb') {
+                boardState[r][c] = null; 
+                voidState[r][c] = true;  
+                triggerPopup("💣 Клетка поглощена Бездной!");
+            }
+            inventory.splice(targetingItemIdx, 1); // Удаляем использованный
+            targetingItemIdx = null; validItemTargets = [];
+            updateUI(); render();
+
+            if (!boardState.flat().some(p => p && p.type !== 'player')) {
+                setTimeout(endLevelVictory, 600);
+            }
         }
 
         function calculatePlayerMoves() {
@@ -485,7 +699,12 @@
                 return;
             }
 
-            setTimeout(enemiesTurn, 200);
+            if (frozenEnemiesTurn) {
+                frozenEnemiesTurn = false;
+                triggerPopup("⏳ Враги застыли во времени!");
+            } else {
+                setTimeout(enemiesTurn, 200);
+            }
         }
 
         function isInside(r, c) { return r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE; }
@@ -620,9 +839,110 @@
         function endLevelVictory() {
             saveHighScore(currentLevel);
             currentLevel++;
-            showUpgradeScreen();
+            
+            if (currentLevel % 3 === 1 && currentLevel > 1) {
+                showMerchantScreen();
+            } else {
+                showUpgradeScreen();
+            }
         }
 
+        // 🔥 ОТКРЫТИЕ ИНТЕРФЕЙСА ТОРГОВЦА
+        function showMerchantScreen() {
+            document.getElementById('merchant-blood-val').innerText = playerBlood;
+            const container = document.getElementById('shop-container');
+            container.innerHTML = '';
+
+            let shuffled = [...SHOP_ITEMS].sort(() => 0.5 - Math.random());
+
+            shuffled.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'shop-card';
+                card.id = `shop-item-${item.id}`;
+                card.innerHTML = `
+                    <h3>${item.title}</h3>
+                    <p style="font-size:0.85rem; color:#ccc; min-height:35px; margin: 8px 0;">${item.text}</p>
+                    <div class="price">${item.price} 🩸</div>
+                    <button onclick="tryBuyItem('${item.id}', ${item.price})">Купить</button>
+                `;
+                container.appendChild(card);
+            });
+
+            document.getElementById('merchant-screen').style.display = 'flex';
+        }
+
+        // 🔥 ПРОВЕРКА ВОЗМОЖНОСТИ ПОКУПКИ И КОНТРОЛЬ СУМКИ
+        function tryBuyItem(itemId, price) {
+            if (playerBlood < price) {
+                triggerPopup("❌ Недостаточно Крови для покупки!");
+                return;
+            }
+
+            const itemData = SHOP_ITEMS.find(i => i.id === itemId);
+
+            // Если в инвентаре свободного места нет
+            if (inventory.length >= maxInventorySlots) {
+                pendingShopItem = { item: itemData, price: price };
+                openSwapDialog();
+                return;
+            }
+            
+            executePurchase(itemData, price);
+        }
+
+        // Проведение транзакции
+        function executePurchase(itemData, price) {
+            playerBlood -= price;
+            document.getElementById('merchant-blood-val').innerText = playerBlood;
+            
+            inventory.push(itemData);
+            
+            const card = document.getElementById(`shop-item-${itemData.id}`);
+            if (card) {
+                card.classList.add('sold-out');
+                card.querySelector('button').disabled = true;
+                card.querySelector('button').innerText = "Куплено";
+            }
+            
+            triggerPopup(`✅ Получено: ${itemData.title}`);
+            updateUI();
+        }
+
+        // 🔥 ДИАЛОГ ВЫБОРА ПРЕДМЕТА ДЛЯ УНИЧТОЖЕНИЯ И ЗАМЕНЫ
+        function openSwapDialog() {
+            const container = document.getElementById('swap-items-choice');
+            container.innerHTML = '<p style="color:#aaa; font-size:0.85rem; margin-top:0;">Выберите, какую вещь уничтожить:</p>';
+
+            inventory.forEach((item, index) => {
+                const btn = document.createElement('button');
+                btn.style.cssText = "width:100%; text-transform:none; margin-top:5px; background:#2a1111; border-color:#ff4d4d; color:#fff;";
+                btn.innerText = `Заменить ${item.title}`;
+                btn.onclick = () => {
+                    // Уничтожаем старый предмет на этой позиции
+                    inventory.splice(index, 1);
+                    // Покупаем новый
+                    executePurchase(pendingShopItem.item, pendingShopItem.price);
+                    cancelSwap();
+                };
+                container.appendChild(btn);
+            });
+
+            document.getElementById('swap-screen').style.display = 'flex';
+        }
+
+        function cancelSwap() {
+            document.getElementById('swap-screen').style.display = 'none';
+            pendingShopItem = null;
+        }
+
+        function closeShop() {
+            document.getElementById('merchant-screen').style.display = 'none';
+            updateBoardSize(); 
+            createBoardDOM();  
+            startLevel();
+        }
+
+        // 🔥 ОБНОВЛЕННЫЙ ПУЛ ДАРОВ (ДОБАВЛЕН ХОД НА УВЕЛИЧЕНИЕ СУМКИ)
         const ALL_UPGRADES = [
             { id: 'heal', title: '💉 Чистое Переливание', text: 'Полностью восстанавливает ХП до максимума. Цена: 2 🩸', action: () => { 
                 if(playerBlood >= 2) { playerHp = maxHp; playerBlood -= 2; } 
@@ -638,6 +958,10 @@
             } },
             { id: 'blood_greed', title: '💰 Алчность Бездны', text: '+3 🩸 за каждое убийство врага', action: () => { 
                 BLOOD_PER_KILL += 3; 
+            } },
+            // Новая пассивка на расширение сумки хранения
+            { id: 'bag_ext', title: '🎒 Пространственный Карман', text: 'Увеличивает вместимость сумки активных предметов на +1 слот (макс. 3).', action: () => {
+                maxInventorySlots = Math.min(3, maxInventorySlots + 1);
             } }
         ];
 
@@ -649,6 +973,7 @@
             let shuffled = [...ALL_UPGRADES].sort(() => 0.5 - Math.random()).slice(0, 3);
             if (canMoveLikeKnight) shuffled = shuffled.filter(u => u.id !== 'knight');
             if (BLOOD_COST_PER_MOVE === 0) shuffled = shuffled.filter(u => u.id !== 'max_hp');
+            if (maxInventorySlots >= 3) shuffled = shuffled.filter(u => u.id !== 'bag_ext');
 
             shuffled.forEach(upg => {
                 const card = document.createElement('div');
@@ -674,7 +999,8 @@
 
         function resetGameMetrics() {
             playerHp = 3; maxHp = 3; playerBlood = 5; currentLevel = 1; canMoveLikeKnight = false; BLOOD_PER_KILL = 4;
-            BLOOD_COST_PER_MOVE = 1; BOARD_SIZE = 6;
+            BLOOD_COST_PER_MOVE = 1; BOARD_SIZE = 6; frozenEnemiesTurn = false;
+            inventory = []; maxInventorySlots = 1; targetingItemIdx = null; pendingShopItem = null;
         }
 
         function backToMenu() {
