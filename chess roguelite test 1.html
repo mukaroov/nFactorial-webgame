@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood & Void: Chess Roguelite</title>
+    <style>
+        body {
+            background-color: #0d0d0d; color: #e0e0e0;
+            font-family: 'Verdana', sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; margin: 0;
+            position: relative;
+        }
+        h1 { margin-top: 15px; margin-bottom: 5px; color: #b22222; text-shadow: 0 0 10px #ff0000; font-size: 2.5rem;}
+        
+        #game-container { display: none; flex-direction: column; align-items: center; }
+        
+        #ui-wrapper { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        
+        #ui-panel {
+            background: #222; border-radius: 10px; padding: 12px 20px;
+            font-size: 1.1rem; display: flex; gap: 20px;
+            box-shadow: 0 0 15px rgba(255,0,0,0.2); border: 1px solid #444;
+        }
+        .stat { display: flex; align-items: center; gap: 5px; }
+        .blood-stat { color: #ff4d4d; font-weight: bold; }
+        .level-stat { color: #ffd700; }
+        
+        button {
+            padding: 12px 28px; font-size: 1.1rem; cursor: pointer;
+            background: #000; color: #ffd700; border: 2px solid #ffd700; border-radius: 8px;
+            font-weight: bold; text-transform: uppercase; transition: 0.2s; margin-top: 15px;
+        }
+        button:hover { background: #ffd700; color: #000; box-shadow: 0 0 15px #ffd700; }
+        
+        #menu-btn {
+            background: #333; color: #fff; border: 1px solid #666; 
+            padding: 12px 15px; border-radius: 10px; font-size: 1.1rem;
+            cursor: pointer; transition: 0.2s; font-weight: bold; margin-top: 0;
+        }
+        #menu-btn:hover { background: #b22222; border-color: #ff4d4d; box-shadow: 0 0 10px #ff0000; }
+
+        /* 👑 АВТО-РАМКА ВОКРУГ ВСЕЙ ДОСКИ */
+        #board {
+            display: grid;
+            /* Коричневая рамка как на картинке, толщиной в 6px */
+            border: 6px solid #4a2525; 
+            /* Черный пиксельный кант снаружи коричневой рамки */
+            outline: 3px solid #1a0d0d;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.9);
+            background: #000;
+        }
+        
+        .cell {
+            width: 62px; height: 62px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; user-select: none;
+            transition: background 0.2s, transform 0.1s;
+            position: relative;
+            background-size: cover;
+            background-repeat: no-repeat;
+            image-rendering: pixelated;
+        }
+        
+        /* ТЕПЕРЬ ВСЯ ДОСКА — ЧИСТЫЙ ШАХМАТНЫЙ УЗОР БЕЗ ИСКАЖЕНИЙ КРАЕВ */
+        .tile-center-light { background-image: url('./assets/Board/tile_light.png'); }
+        .tile-center-dark  { background-image: url('./assets/Board/tile_dark.png'); }
+        
+        .void {
+            background-color: #000 !important;
+            background-image: radial-gradient(#111 10%, transparent 11%) !important;
+            background-size: 10px 10px !important;
+            cursor: not-allowed;
+        }
+        
+        .cell:not(.void):hover { background-color: rgba(255, 204, 204, 0.2) !important; transform: scale(1.03); }
+        .selected { background-color: rgba(255, 102, 102, 0.3) !important; box-shadow: inset 0 0 15px #b22222;}
+        
+        .valid-move::after {
+            content: ''; width: 18px; height: 18px;
+            background-color: rgba(178, 34, 34, 0.7);
+            border-radius: 50%; position: absolute;
+            box-shadow: 0 0 10px #ff0000;
+        }
+        .valid-capture::after {
+            content: '⚔️'; font-size: 1.1rem; position: absolute; opacity: 0.8;
+        }
+
+        .overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); flex-direction: column; align-items: center; 
+            justify-content: center; z-index: 10;
+        }
+        
+        #main-menu { display: flex; background: #0d0d0d; }
+        .menu-container {
+            text-align: center; background: #161616; padding: 40px; 
+            border-radius: 15px; border: 2px solid #b22222;
+            box-shadow: 0 0 35px rgba(178,34,34,0.4); max-width: 400px; width: 100%;
+        }
+        .menu-container button { width: 100%; margin-bottom: 10px; }
+        #high-score-display { color: #ffd700; font-size: 1.3rem; margin-top: 15px; margin-bottom: 25px; font-weight: bold;}
+
+        #help-screen .modal {
+            background: #1c1c1c; border: 2px solid #555; padding: 30px; 
+            border-radius: 12px; max-width: 500px; line-height: 1.5;
+            box-shadow: 0 0 30px rgba(255,255,255,0.1);
+        }
+        #help-screen h3 { color: #ffd700; margin-top: 15px; margin-bottom: 5px; }
+
+        .upgrade-card {
+            background: #1a1a1a; border: 2px solid #b22222; color: #fff;
+            padding: 25px; margin: 15px; border-radius: 12px; cursor: pointer;
+            width: 320px; text-align: center; transition: 0.2s;
+            box-shadow: 0 0 20px rgba(178,34,34,0.3);
+        }
+        .upgrade-card:hover { transform: translateY(-5px); background: #2a2a2a; box-shadow: 0 0 30px rgba(178,34,34,0.6); }
+        .upgrade-card h3 { color: #ff4d4d; margin-top: 0; }
+
+        #game-over { background: rgba(178,34,34,0.85); color: #fff; text-align: center; }
+        #layer-popup { color: #ffd700; font-size: 2rem; font-weight: bold; text-shadow: 0 0 10px #ff0000; display: none; margin-bottom: 10px; text-align: center; }
+        
+        .cell-piece {
+            width: 85%; height: 85%;
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+            pointer-events: none; image-rendering: pixelated;              
+        }
+
+        .piece-player { background-image: url("./assets/player/spr_king_white.png"); }
+        .piece-pawn   { background-image: url("./assets/enemy/spr_pawn_black.png"); }
+        .piece-knight { background-image: url("./assets/enemy/spr_knight_black.png"); } 
+        .piece-rook   { background-image: url("./assets/enemy/spr_rook_black.png"); }
+        .piece-bishop { background-image: url("./assets/enemy/spr_bishop_black.png"); }
+        .piece-queen  { background-image: url("./assets/enemy/spr_queen_black.png"); }
+    </style>
+</head>
+<body>
+
+    <div id="main-menu" class="overlay" style="display: flex;">
+        <div class="menu-container">
+            <h1 style="margin-top: 0; font-size: 3rem;">Blood & Void</h1>
+            <p style="color: #888; font-style: italic; margin-bottom: 5px;">Chess Roguelite</p>
+            
+            <div id="high-score-display">🏆 Рекорд: Волна 1</div>
+            
+            <button onclick="startGame()">⚔️ Играть</button>
+            <button onclick="toggleHelp(true, true)">📜 Правила</button>
+            <button onclick="resetHighScore()" style="background:#222; color:#bbb; border-color:#444; font-size:0.9rem; padding:8px;">Сбросить рекорд</button>
+        </div>
+    </div>
+
+    <div id="game-container">
+        <div id="layer-popup">ДОСКА РАСШИРЕНА!</div>
+        <h1>Blood & Void 🩸</h1>
+        
+        <div id="ui-wrapper">
+            <div id="ui-panel">
+                <div class="stat level-stat">🗺️ Волна: <span id="level-val">1</span></div>
+                <div class="stat hp-stat">❤️ ХП: <span id="hp-val">3</span> / <span id="max-hp">3</span></div>
+                <div class="stat blood-stat">🩸 Кровь: <span id="blood-val">5</span></div>
+            </div>
+            <button id="menu-btn" onclick="openMenuFromGame()">⚙️ Меню</button>
+        </div>
+        
+        <div id="board"></div>
+    </div>
+
+    <div id="help-screen" class="overlay" onclick="toggleHelp(false)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <h2 style="color: #ff4d4d; margin-top: 0; text-align: center;">Свод правил Бездны</h2>
+            
+            <h3>🧠 Рост Доски и Враги</h3>
+            <p>Вы — Король 👑. Чем дальше вы заходите, тем глубже проваливаетесь в Бездну, увеличивая поле боя:</p>
+            <ul>
+                <li><strong>Волны 1-4:</strong> Поле 6х6. Противники: Пешки ♟️ и Кони ♞.</li>
+                <li><strong>Волны 5-9:</strong> Поле 7х7. Появляется Ладья ♖.</li>
+                <li><strong>Волны 10-14:</strong> Поле 8х8. Появляется Слон ♗.</li>
+                <li><strong>Волны 15+:</strong> Поле 9х9. Полная армия Бездны.</li>
+            </ul>
+            
+            <h3>⚠️ Важное правило: Проведение Пешки</h3>
+            <p>Если вражеская Пешка ♟️ дойдет до самого низа доски, она **превратится в Ферзя ♕**! Ферзь бьет во все стороны без ограничения по дальности. Не давайте им дойти!</p>
+            
+            <h3>🩸 Ресурсы</h3>
+            <p>Каждое перемещение стоит <strong>1 🩸 Крови</strong> (если нет улучшений). Убийство врага восстанавливает Кровь. За вами клетки превращаются в <strong>Бездну 🕳️</strong>.</p>
+            
+            <div style="text-align: center;"><button onclick="toggleHelp(false)">Назад</button></div>
+        </div>
+    </div>
+
+    <div id="upgrade-screen" class="overlay">
+        <h2>Жертва принесена. Выберите дар:</h2>
+        <div id="upgrades-container"></div>
+    </div>
+
+    <div id="game-over" class="overlay">
+        <h2 style="font-size: 3.5rem; margin: 0; text-shadow: 0 5px 10px #000;">БЕЗДНА ПОГЛОТИЛА ВАС</h2>
+        <p id="score-report" style="font-size: 1.5rem; margin: 15px 0;"></p>
+        <button onclick="backToMenu()">В главное меню</button>
+    </div>
+
+    <script>
+        let BOARD_SIZE = 6; 
+        let boardState = []; 
+        let voidState = [];  
+        let playerPos = { r: 5, c: 2 };
+        let selectedCell = null;
+        let validMoves = [];
+        
+        let playerHp = 3;
+        let maxHp = 3;
+        let playerBlood = 5; 
+        let currentLevel = 1;
+        let canMoveLikeKnight = false;
+
+        let BLOOD_PER_KILL = 4;
+        let BLOOD_COST_PER_MOVE = 1; 
+        let isOpenedFromMenu = false;
+
+        const ENEMY_PRESETS = {
+            1:  { pawn: 2, knight: 0, rook: 0, bishop: 0 },
+            2:  { pawn: 2, knight: 1, rook: 0, bishop: 0 },
+            3:  { pawn: 3, knight: 1, rook: 0, bishop: 0 },
+            4:  { pawn: 2, knight: 2, rook: 0, bishop: 0 },
+            5:  { pawn: 3, knight: 1, rook: 1, bishop: 0 },
+            6:  { pawn: 2, knight: 2, rook: 1, bishop: 0 },
+            7:  { pawn: 3, knight: 2, rook: 1, bishop: 0 },
+            8:  { pawn: 4, knight: 1, rook: 2, bishop: 0 },
+            9:  { pawn: 3, knight: 2, rook: 2, bishop: 0 },
+            10: { pawn: 3, knight: 2, rook: 1, bishop: 1 },
+            11: { pawn: 4, knight: 1, rook: 2, bishop: 1 },
+            12: { pawn: 3, knight: 2, rook: 2, bishop: 2 },
+            13: { pawn: 4, knight: 2, rook: 1, bishop: 2 },
+            14: { pawn: 5, knight: 2, rook: 2, bishop: 1 },
+            default: (lvl) => {
+                return {
+                    pawn: 4 + Math.floor(lvl * 0.2),
+                    knight: 2 + Math.floor(lvl * 0.1),
+                    rook: 2 + Math.floor(lvl * 0.1),
+                    bishop: 2 + Math.floor(lvl * 0.1)
+                }
+            }
+        };
+
+        function initApp() {
+            loadHighScore();
+        }
+
+        function loadHighScore() {
+            let record = localStorage.getItem('chess_rogue_highscore') || 1;
+            document.getElementById('high-score-display').innerText = `🏆 Максимальная волна: ${record}`;
+        }
+
+        function saveHighScore(level) {
+            let currentRecord = parseInt(localStorage.getItem('chess_rogue_highscore') || 1);
+            if (level > currentRecord) {
+                localStorage.setItem('chess_rogue_highscore', level);
+                loadHighScore();
+            }
+        }
+
+        function resetHighScore() {
+            localStorage.setItem('chess_rogue_highscore', 1);
+            loadHighScore();
+        }
+
+        function startGame() {
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('game-container').style.display = 'flex';
+            resetGameMetrics();
+            updateBoardSize(); 
+            createBoardDOM();
+            startLevel();
+        }
+
+        function openMenuFromGame() {
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('main-menu').style.display = 'flex';
+            loadHighScore();
+        }
+
+        function toggleHelp(show, fromMenu = false) {
+            isOpenedFromMenu = fromMenu;
+            const screen = document.getElementById('help-screen');
+            screen.style.display = show ? 'flex' : 'none';
+            if (!show && isOpenedFromMenu) document.getElementById('main-menu').style.display = 'flex';
+            if (show && fromMenu) document.getElementById('main-menu').style.display = 'none';
+        }
+
+        function triggerPopup(text) {
+            const popup = document.getElementById('layer-popup');
+            popup.innerText = text;
+            popup.style.display = 'block';
+            setTimeout(() => popup.style.display = 'none', 2500);
+        }
+
+        function updateBoardSize() {
+            let oldSize = BOARD_SIZE;
+            if (currentLevel >= 15) BOARD_SIZE = 9;
+            else if (currentLevel >= 10) BOARD_SIZE = 8;
+            else if (currentLevel >= 5) BOARD_SIZE = 7;
+            else BOARD_SIZE = 6;
+
+            if (oldSize !== BOARD_SIZE && oldSize !== undefined) {
+                setTimeout(() => triggerPopup("ДОСКА РАСШИРЕНА!"), 300);
+            }
+        }
+
+        function createBoardDOM() {
+            const boardEl = document.getElementById('board');
+            boardEl.innerHTML = '';
+            boardEl.style.gridTemplateColumns = `repeat(${BOARD_SIZE}, 62px)`;
+            boardEl.style.gridTemplateRows = `repeat(${BOARD_SIZE}, 62px)`;
+            
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell'; 
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+                    cell.addEventListener('click', () => onCellClick(r, c));
+                    boardEl.appendChild(cell);
+                }
+            }
+        }
+
+        function startLevel() {
+            updateUI();
+            boardState = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
+            voidState = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(false));
+            
+            playerPos = { r: BOARD_SIZE - 1, c: Math.floor(BOARD_SIZE / 2) };
+            boardState[playerPos.r][playerPos.c] = { type: 'player', icon: '👑' };
+
+            let preset = ENEMY_PRESETS[currentLevel] || ENEMY_PRESETS.default(currentLevel);
+            
+            spawnEnemyGroup(preset.pawn, 'pawn', '♟️');
+            spawnEnemyGroup(preset.knight, 'knight', '♞');
+            spawnEnemyGroup(preset.rook, 'rook', '♖');
+            spawnEnemyGroup(preset.bishop, 'bishop', '♗');
+
+            render();
+        }
+
+        function spawnEnemyGroup(count, type, icon) {
+            for (let i = 0; i < count; i++) {
+                let r, c, attempts = 0;
+                do {
+                    r = Math.floor(Math.random() * Math.min(3, BOARD_SIZE - 3)); 
+                    c = Math.floor(Math.random() * BOARD_SIZE);
+                    attempts++;
+                } while (boardState[r][c] !== null && attempts < 100);
+                
+                if (attempts < 100) {
+                    boardState[r][c] = { type: type, icon: icon };
+                }
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('level-val').innerText = currentLevel;
+            document.getElementById('hp-val').innerText = playerHp;
+            document.getElementById('max-hp').innerText = maxHp;
+            document.getElementById('blood-val').innerText = playerBlood;
+        }
+
+        function render() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                const r = parseInt(cell.dataset.row);
+                const c = parseInt(cell.dataset.col);
+                const piece = boardState[r][c];
+                const isVoid = voidState[r][c];
+                
+                cell.innerHTML = ''; 
+
+                if (isVoid) {
+                    cell.className = 'cell void';
+                    return; 
+                } else {
+                    cell.className = 'cell';
+                    // Идеальный шахматный порядок для любого размера
+                    if ((r + c) % 2 === 0) {
+                        cell.classList.add('tile-center-light');
+                    } else {
+                        cell.classList.add('tile-center-dark');
+                    }
+
+                    if (piece) {
+                        const pieceEl = document.createElement('div');
+                        pieceEl.className = `cell-piece piece-${piece.type}`;
+                        cell.appendChild(pieceEl);
+                    }
+                }
+
+                cell.classList.remove('selected', 'valid-move', 'valid-capture');
+                if (selectedCell && selectedCell.r === r && selectedCell.c === c) cell.classList.add('selected');
+                
+                const moveData = validMoves.find(m => m.r === r && m.c === c);
+                if (moveData) {
+                    if (moveData.isCapture) cell.classList.add('valid-capture');
+                    else cell.classList.add('valid-move');
+                }
+            });
+        }
+
+        function onCellClick(r, c) {
+            if (voidState[r][c]) return;
+
+            if (boardState[r][c] && boardState[r][c].type === 'player') {
+                selectedCell = { r, c };
+                calculatePlayerMoves();
+                render();
+                return;
+            }
+
+            const moveData = validMoves.find(m => m.r === r && m.c === c);
+            if (moveData) {
+                attemptPlayerMove(moveData);
+                return;
+            }
+
+            selectedCell = null; validMoves = []; render();
+        }
+
+        function calculatePlayerMoves() {
+            validMoves = [];
+            const r = playerPos.r; const c = playerPos.c;
+            const kingDirs = [
+                {dr:-1,dc:-1}, {dr:-1,dc:0}, {dr:-1,dc:1},
+                {dr:0, dc:-1},              {dr:0, dc:1},
+                {dr:1, dc:-1}, {dr:1, dc:0}, {dr:1, dc:1}
+            ];
+
+            kingDirs.forEach(dir => {
+                let nr = r + dir.dr, nc = c + dir.dc;
+                if (isInside(nr, nc) && !voidState[nr][nc]) {
+                    const target = boardState[nr][nc];
+                    validMoves.push({ r: nr, c: nc, isCapture: target && target.type !== 'player' });
+                }
+            });
+
+            if (canMoveLikeKnight) {
+                const knightMoves = [
+                    {dr:-2, dc:-1}, {dr:-2, dc:1}, {dr:-1, dc:-2}, {dr:-1, dc:2},
+                    {dr:1, dc:-2}, {dr:1, dc:2}, {dr:2, dc:-1}, {dr:2, dc:1}
+                ];
+                knightMoves.forEach(m => {
+                    let nr = r + m.dr, nc = c + m.dc;
+                    if (isInside(nr, nc) && !voidState[nr][nc]) {
+                        if (!validMoves.some(v => v.r === nr && v.c === nc)) {
+                            const target = boardState[nr][nc];
+                            validMoves.push({ r: nr, c: nc, isCapture: target && target.type !== 'player' });
+                        }
+                    }
+                });
+            }
+        }
+
+        function attemptPlayerMove(moveData) {
+            if (playerBlood < BLOOD_COST_PER_MOVE) {
+                playerHp--;
+                selectedCell = null; validMoves = []; updateUI(); render();
+                if (playerHp <= 0) gameOver('Кровь кончилась. Ваше сердце остановилось.');
+                return; 
+            }
+
+            playerBlood -= BLOOD_COST_PER_MOVE;
+            const crumbledR = playerPos.r; const crumbledC = playerPos.c;
+
+            if (moveData.isCapture) {
+                playerBlood += BLOOD_PER_KILL;
+            }
+
+            boardState[playerPos.r][playerPos.c] = null;
+            boardState[moveData.r][moveData.c] = { type: 'player', icon: '👑' };
+            playerPos = { r: moveData.r, c: moveData.c };
+            voidState[crumbledR][crumbledC] = true;
+
+            selectedCell = null; validMoves = []; updateUI(); render();
+
+            if (!boardState.flat().some(p => p && p.type !== 'player')) {
+                endLevelVictory();
+                return;
+            }
+
+            setTimeout(enemiesTurn, 200);
+        }
+
+        function isInside(r, c) { return r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE; }
+
+        function isPathClear(fromR, fromC, toR, toC) {
+            let dr = Math.sign(toR - fromR);
+            let dc = Math.sign(toC - fromC);
+            let currR = fromR + dr;
+            let currC = fromC + dc;
+
+            while (currR !== toR || currC !== toC) {
+                if (voidState[currR][currC] || (boardState[currR][currC] !== null && boardState[currR][currC].type !== 'player')) {
+                    return false; 
+                }
+                currR += dr;
+                currC += dc;
+            }
+            return true;
+        }
+
+        function enemiesTurn() {
+            let playerHit = false;
+            let currentTurnPieces = [];
+
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (boardState[r][c] && boardState[r][c].type !== 'player') {
+                        currentTurnPieces.push({ r, c, piece: boardState[r][c] });
+                    }
+                }
+            }
+
+            currentTurnPieces.forEach(item => {
+                let r = item.r; let c = item.c; let piece = item.piece;
+                if (boardState[r][c] !== piece) return; 
+
+                if (piece.type === 'pawn') {
+                    let attackLeft = { r: r + 1, c: c - 1 };
+                    let attackRight = { r: r + 1, c: c + 1 };
+                    
+                    if ((playerPos.r === attackLeft.r && playerPos.c === attackLeft.c) || 
+                        (playerPos.r === attackRight.r && playerPos.c === attackRight.c)) {
+                        playerHit = true;
+                    } else {
+                        let nextR = r + 1;
+                        if (isInside(nextR, c) && boardState[nextR][c] === null && !voidState[nextR][c]) {
+                            boardState[r][c] = null; 
+                            if (nextR === BOARD_SIZE - 1) {
+                                boardState[nextR][c] = { type: 'queen', icon: '♕' };
+                                triggerPopup("⚠️ ПЕШКА СТАЛА ФЕРЗЕМ!");
+                            } else {
+                                boardState[nextR][c] = piece;
+                            }
+                        }
+                    }
+                } 
+                else if (piece.type === 'knight') {
+                    const knightMoves = [
+                        {dr:-2, dc:-1}, {dr:-2, dc:1}, {dr:-1, dc:-2}, {dr:-1, dc:2},
+                        {dr:1, dc:-2}, {dr:1, dc:2}, {dr:2, dc:-1}, {dr:2, dc:1}
+                    ];
+                    let canHit = knightMoves.some(m => playerPos.r === r + m.dr && playerPos.c === c + m.dc);
+                    
+                    if (canHit) {
+                        playerHit = true;
+                    } else {
+                        let bestMove = null; let minDistance = Infinity;
+                        knightMoves.forEach(m => {
+                            let nr = r + m.dr; let nc = c + m.dc;
+                            if (isInside(nr, nc) && boardState[nr][nc] === null && !voidState[nr][nc]) {
+                                let dist = Math.abs(playerPos.r - nr) + Math.abs(playerPos.c - nc);
+                                if (dist < minDistance) { minDistance = dist; bestMove = { r: nr, c: nc }; }
+                            }
+                        });
+                        if (bestMove) { boardState[r][c] = null; boardState[bestMove.r][bestMove.c] = piece; }
+                    }
+                }
+                else if (piece.type === 'rook') {
+                    if ((playerPos.r === r || playerPos.c === c) && isPathClear(r, c, playerPos.r, playerPos.c)) {
+                        playerHit = true;
+                    } else {
+                        let dr = Math.sign(playerPos.r - r);
+                        let dc = Math.sign(playerPos.c - c);
+                        let nextR = r, nextC = c;
+                        
+                        if (dr !== 0 && Math.random() > 0.5) nextR += dr;
+                        else if (dc !== 0) nextC += dc;
+
+                        if (isInside(nextR, nextC) && boardState[nextR][nextC] === null && !voidState[nextR][nextC]) {
+                            boardState[r][c] = null; boardState[nextR][nextC] = piece;
+                        }
+                    }
+                }
+                else if (piece.type === 'bishop') {
+                    if (Math.abs(playerPos.r - r) === Math.abs(playerPos.c - c) && isPathClear(r, c, playerPos.r, playerPos.c)) {
+                        playerHit = true;
+                    } else {
+                        let dr = Math.sign(playerPos.r - r);
+                        let dc = Math.sign(playerPos.c - c);
+                        let nextR = r + dr;
+                        let nextC = c + dc;
+
+                        if (isInside(nextR, nextC) && boardState[nextR][nextC] === null && !voidState[nextR][nextC]) {
+                            boardState[r][c] = null; boardState[nextR][nextC] = piece;
+                        }
+                    }
+                }
+                else if (piece.type === 'queen') {
+                    let isSameLine = (playerPos.r === r || playerPos.c === c);
+                    let isSameDiagonal = (Math.abs(playerPos.r - r) === Math.abs(playerPos.c - c));
+                    
+                    if ((isSameLine || isSameDiagonal) && isPathClear(r, c, playerPos.r, playerPos.c)) {
+                        playerHit = true;
+                    } else {
+                        let dr = Math.sign(playerPos.r - r);
+                        let dc = Math.sign(playerPos.c - c);
+                        let nextR = r + dr;
+                        let nextC = c + dc;
+
+                        if (isInside(nextR, nextC) && boardState[nextR][nextC] === null && !voidState[nextR][nextC]) {
+                            boardState[r][c] = null; boardState[nextR][nextC] = piece;
+                        }
+                    }
+                }
+            });
+            
+            if (playerHit) { playerHp--; updateUI(); }
+            render();
+            if (playerHp <= 0) gameOver('Вас уничтожили фигуры противника.');
+        }
+
+        function endLevelVictory() {
+            saveHighScore(currentLevel);
+            currentLevel++;
+            showUpgradeScreen();
+        }
+
+        const ALL_UPGRADES = [
+            { id: 'heal', title: '💉 Чистое Переливание', text: 'Полностью восстанавливает ХП до максимума. Цена: 2 🩸', action: () => { 
+                if(playerBlood >= 2) { playerHp = maxHp; playerBlood -= 2; } 
+            } },
+            { id: 'ritual', title: '🩸 Кровавый Ритуал', text: 'Пожертвовать 1 ХП ради полной перезарядки Крови (+10 🩸)', action: () => { 
+                if(playerHp > 1) { playerHp -= 1; playerBlood += 10; } 
+            } },
+            { id: 'max_hp', title: '🏺 Кровавый Сосуд', text: '+1 к макс. ХП. Пассивно: перемещения больше не тратят Кровь!', action: () => { 
+                maxHp++; BLOOD_COST_PER_MOVE = 0;
+            } },
+            { id: 'knight', title: '🌌 Мутация Войда', text: 'Король ходит как Конь и прыгает через Бездну. Плата: -1 от макс. ХП!', action: () => { 
+                canMoveLikeKnight = true; if(maxHp > 1) { maxHp--; playerHp = Math.min(playerHp, maxHp); }
+            } },
+            { id: 'blood_greed', title: '💰 Алчность Бездны', text: '+3 🩸 за каждое убийство врага', action: () => { 
+                BLOOD_PER_KILL += 3; 
+            } }
+        ];
+
+        function showUpgradeScreen() {
+            const screen = document.getElementById('upgrade-screen');
+            const container = document.getElementById('upgrades-container');
+            container.innerHTML = '';
+
+            let shuffled = [...ALL_UPGRADES].sort(() => 0.5 - Math.random()).slice(0, 3);
+            if (canMoveLikeKnight) shuffled = shuffled.filter(u => u.id !== 'knight');
+            if (BLOOD_COST_PER_MOVE === 0) shuffled = shuffled.filter(u => u.id !== 'max_hp');
+
+            shuffled.forEach(upg => {
+                const card = document.createElement('div');
+                card.className = 'upgrade-card';
+                card.innerHTML = `<h3>${upg.title}</h3><p>${upg.text}</p>`;
+                card.onclick = () => {
+                    upg.action();
+                    screen.style.display = 'none';
+                    updateBoardSize(); 
+                    createBoardDOM();  
+                    startLevel();
+                };
+                container.appendChild(card);
+            });
+            screen.style.display = 'flex';
+        }
+
+        function gameOver(reason) {
+            saveHighScore(currentLevel);
+            document.getElementById('score-report').innerText = `${reason} Вы закончили на Волна: ${currentLevel}.`;
+            document.getElementById('game-over').style.display = 'flex';
+        }
+
+        function resetGameMetrics() {
+            playerHp = 3; maxHp = 3; playerBlood = 5; currentLevel = 1; canMoveLikeKnight = false; BLOOD_PER_KILL = 4;
+            BLOOD_COST_PER_MOVE = 1; BOARD_SIZE = 6;
+        }
+
+        function backToMenu() {
+            document.getElementById('game-over').style.display = 'none';
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('main-menu').style.display = 'flex';
+            loadHighScore();
+        }
+
+        initApp();
+    </script>
+</body>
+</html>
