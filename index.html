@@ -1,13 +1,17 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=no">
     <title>Blood & Void: Chess Roguelite</title>
     <style>
+        @font-face {
+            font-family: 'VoidFont';
+            src: url('./pixelosopher.ttf') format('truetype');
+        }
         body {
             background-color: #0d0d0d; color: #e0e0e0;
-            font-family: 'Verdana', sans-serif;
+            font-family: 'VoidFont', sans-serif;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh; margin: 0; padding: 10px;
             box-sizing: border-box;
@@ -28,7 +32,7 @@
         .blood-stat { color: #ff4d4d; }
         .level-stat { color: #ffd700; }
 
-        /* 🔥 СТИЛИ ДЛЯ ИНВЕНТАРЯ СЛОТОВ */
+        /* 🎮 INVENTORY SLOTS STYLES */
         #inventory-container { display: flex; gap: 8px; align-items: center; }
         .item-slot {
             background: #111; border: 2px dashed #555; width: 42px; height: 42px;
@@ -51,6 +55,7 @@
         }
         
         button {
+            font-family: 'VoidFont', sans-serif;
             padding: 10px 20px; font-size: 1rem; cursor: pointer;
             background: #000; color: #ffd700; border: 2px solid #ffd700; border-radius: 8px;
             font-weight: bold; text-transform: uppercase; transition: 0.2s; margin-top: 10px;
@@ -58,13 +63,14 @@
         button:hover { background: #ffd700; color: #000; box-shadow: 0 0 15px #ffd700; }
         
         #menu-btn {
+            font-family: 'VoidFont', sans-serif;
             background: #333; color: #fff; border: 1px solid #666; 
             padding: 8px 16px; border-radius: 8px; font-size: 1rem;
             cursor: pointer; transition: 0.2s; font-weight: bold; margin-top: 0;
         }
         #menu-btn:hover { background: #b22222; border-color: #ff4d4d; box-shadow: 0 0 10px #ff0000; }
 
-        /* 👑 АВТО-РАМКА ВОКРУГ ВСЕЙ ДОСКИ */
+        /* 👑 BOARD AUTO-FRAME */
         #board {
             display: grid;
             border: 6px solid #4a2525; 
@@ -127,7 +133,7 @@
         .menu-container button { width: 100%; margin-bottom: 10px; }
         #high-score-display { color: #ffd700; font-size: 1.2rem; margin-top: 10px; margin-bottom: 20px; font-weight: bold;}
 
-        /* 🔥 СТИЛИ ДЛЯ ЛАВКИ ТОРГОВЦА */
+        /* 🛒 MERCHANT SHOP STYLES */
         .merchant-title { color: #ff4d4d; text-shadow: 0 0 15px #ff0000; font-size: 2rem; margin-top: 0; margin-bottom: 5px; text-align: center; }
         .merchant-subtitle { color: #888; font-style: italic; margin-bottom: 20px; text-align: center; font-size: 0.9rem; }
         .shop-card {
@@ -142,7 +148,7 @@
         .shop-card button { width: 100%; padding: 8px; font-size: 0.95rem; margin-top: 10px; }
         .shop-card.sold-out { opacity: 0.3; cursor: not-allowed; }
 
-        /* 🔥 ОКНО ПОДТВЕРЖДЕНИЯ ОБМЕНА ПРЕДМЕТА */
+        /* 🎒 ITEM SWAP CONFIRMATION DIALOG */
         .swap-dialog {
             background: #1c1313; border: 2px solid #ff4d4d; padding: 20px;
             border-radius: 12px; text-align: center; max-width: 320px; width: 100%;
@@ -178,7 +184,17 @@
             background-size: contain; background-repeat: no-repeat; background-position: center;
             pointer-events: none; image-rendering: pixelated;              
         }
-
+        .inline-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            vertical-align: middle;
+            image-rendering: pixelated;
+            margin: 0 4px; /* Небольшой отступ слева и справа, чтобы текст не прилипал */
+        }
         .piece-player { background-image: url("./assets/player/spr_king_white.png"); }
         .piece-pawn   { background-image: url("./assets/enemy/spr_pawn_black.png"); }
         .piece-knight { background-image: url("./assets/enemy/spr_knight_black.png"); } 
@@ -186,14 +202,13 @@
         .piece-bishop { background-image: url("./assets/enemy/spr_bishop_black.png"); }
         .piece-queen  { background-image: url("./assets/enemy/spr_queen_black.png"); }
 
-        /* 🔥 МОБИЛЬНАЯ АДАПТАЦИЯ (МЕДИА-ЗАПРОСЫ) */
+        /* 📱 RESPONSIVE MEDIA QUERIES */
         @media (max-width: 600px) {
             h1 { font-size: 1.6rem; }
             #ui-panel { padding: 8px 10px; gap: 10px; font-size: 0.9rem; }
             #ui-wrapper { flex-direction: row; justify-content: space-between; align-items: center; }
             #menu-btn { padding: 6px 12px; font-size: 0.9rem; }
             
-            /* Сжатие ячеек для экранов смартфонов */
             .cell { width: 40px; height: 40px; }
             #board { border-width: 4px; outline-width: 2px; }
             .valid-move::after { width: 12px; height: 12px; }
@@ -204,8 +219,30 @@
             #shop-container { flex-direction: column; align-items: center; }
         }
 
+        .icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            image-rendering: pixelated;
+            vertical-align: middle;
+        }
+        .icon-blood { background-image: url('./assets/UI/blood.png'); }
+        .icon-hp { background-image: url('./assets/UI/hp.png'); }
+        .icon-void { background-image: url('./assets/UI/void.png'); }
+        .icon-backpack { background-image: url('./assets/UI/backpack.png'); }
+        .icon-allart { background-image: url('./assets/UI/allart.png'); }
+        .icon-important { background-image: url('./assets/UI/important.png'); }
+        .icon-play { background-image: url('./assets/UI/play.png'); }
+        .icon-rules { background-image: url('./assets/UI/rules.png'); }
+        .icon-trofy { background-image: url('./assets/UI/trofy.png'); }
+        .icon-greed { background-image: url('./assets/UI/greed.png'); }
+        .icon-heal { background-image: url('./assets/UI/heal.png'); }
+        .icon-vessel { background-image: url('./assets/UI/vessel.png'); }
+
+        
         @media (max-width: 380px) {
-            /* Предельное сжатие для совсем маленьких дисплеев (iPhone SE и т.д.) */
             .cell { width: 34px; height: 34px; }
             #ui-panel { font-size: 0.8rem; }
             .item-slot { width: 34px; height: 34px; font-size: 0.95rem; }
@@ -219,83 +256,83 @@
             <h1 style="margin-top: 0; font-size: 2.5rem;">Blood & Void</h1>
             <p style="color: #888; font-style: italic; margin-bottom: 5px;">Chess Roguelite</p>
             
-            <div id="high-score-display">🏆 Рекорд: Волна 1</div>
+            <div id="high-score-display"> <span class="icon icon-trofy"></span> High Score: Wave 1</div>
             
-            <button onclick="startGame()">⚔️ Играть</button>
-            <button onclick="toggleHelp(true, true)">📜 Правила</button>
-            <button onclick="resetHighScore()" style="background:#222; color:#bbb; border-color:#444; font-size:0.85rem; padding:6px;">Сбросить рекорд</button>
+            <button onclick="startGame()"><span class="icon icon-play"></span>  Play</button>
+            <button onclick="toggleHelp(true, true)"><span class="icon icon-rules"></span> Rules</button>
+            <button onclick="resetHighScore()" style="background:#222; color:#bbb; border-color:#444; font-size:0.85rem; padding:6px;">Reset Record</button>
         </div>
     </div>
 
     <div id="game-container">
-        <div id="layer-popup">ДОСКА РАСШИРЕНА!</div>
-        <h1>Blood & Void 🩸</h1>
+        <div id="layer-popup">BOARD EXPANDED!</div>
+        <h1>Blood & Void <span class="icon icon-blood"></span></h1>
         
         <div id="ui-wrapper">
             <div id="ui-panel">
-                <div class="stat level-stat">🗺️ Волна: <span id="level-val">1</span></div>
-                <div class="stat hp-stat">❤️ ХП: <span id="hp-val">3</span>/<span id="max-hp">3</span></div>
-                <div class="stat blood-stat">🩸 Кровь: <span id="blood-val">5</span></div>
-                
+                <div class="stat level-stat">🗺️ Wave: <span id="level-val">1</span></div>
+                <div class="stat hp-stat"><span class="icon icon-hp"></span> HP: <span id="hp-val">3</span>/<span id="max-hp">3</span></div>
+                <div class="stat blood-stat"><span class="icon icon-blood"></span> Blood: <span id="blood-val">5</span></div>
+
                 <div id="inventory-container"></div>
             </div>
-            <button id="menu-btn" onclick="openMenuFromGame()">⚙️ Меню</button>
+            <button id="menu-btn" onclick="openMenuFromGame()">⚙️ Menu</button>
         </div>
         
         <div id="board"></div>
     </div>
 
     <div id="merchant-screen" class="overlay">
-        <h2 class="merchant-title">Лавка Бездны 🖤</h2>
-        <p class="merchant-subtitle">"Кровь — отличная валюта в этих глубинах..."</p>
-        <div style="color: #ff4d4d; font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; text-align: center;">Ваша Кровь: <span id="merchant-blood-val">0</span>🩸</div>
+        <h2 class="merchant-title">Void Shop 🖤</h2>
+        <p class="merchant-subtitle">"Blood is an excellent currency in these depths..."</p>
+        <div style="color: #ff4d4d; font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; text-align: center;">Your Blood: <span id="merchant-blood-val">0</span><span class="icon icon-blood"></span></div>
         <div id="shop-container" style="display: flex; justify-content: center; flex-wrap: wrap;"></div>
-        <button onclick="closeShop()" style="background: #222; border-color: #666; margin-top: 20px;">Продолжить путь ➔</button>
+        <button onclick="closeShop()" style="background: #222; border-color: #666; margin-top: 20px;">Continue Journey ➔</button>
     </div>
 
     <div id="swap-screen" class="overlay" style="z-index: 20; background: rgba(0,0,0,0.85);">
         <div class="swap-dialog">
-            <h3>🎒 Сумка заполнена!</h3>
-            <p>У вас нет свободных слотов. Желаете уничтожить один из старых предметов ради покупки нового?</p>
+            <h3><span class="icon icon-backpack"></span> Inventory Full!</h3>
+            <p>You have no free slots left. Do you want to destroy one of your old items to buy the new one?</p>
             <div id="swap-items-choice" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;"></div>
             <div class="swap-buttons">
-                <button onclick="cancelSwap()" style="background:#333; border-color:#666; color:#fff;">Отмена</button>
+                <button onclick="cancelSwap()" style="background:#333; border-color:#666; color:#fff;">Cancel</button>
             </div>
         </div>
     </div>
 
     <div id="help-screen" class="overlay" onclick="toggleHelp(false)">
         <div class="modal" onclick="event.stopPropagation()">
-            <h2 style="color: #ff4d4d; margin-top: 0; text-align: center;">Свод правил Бездны</h2>
+            <h2 style="color: #ff4d4d; margin-top: 0; text-align: center;">Rules of the Void</h2>
             
-            <h3>🧠 Рост Доски и Враги</h3>
-            <p>Вы — Король 👑. Чем дальше вы заходите, тем глубже проваливаетесь в Бездну, увеличивая поле боя:</p>
+            <h3> <span class="icon icon-important"></span> Board Growth & Enemies</h3>
+            <p>You are the King <span class="inline-icon piece-player"></span>. The further you go, the deeper you fall into the Void, expanding the battlefield:</p>
             <ul>
-                <li><strong>Волны 1-4:</strong> Поле 6х6. Противники: Пешки ♟️ и Кони ♞.</li>
-                <li><strong>Волны 5-9:</strong> Поле 7х7. Появляется Ладья ♖.</li>
-                <li><strong>Волны 10-14:</strong> Поле 8х8. Появляется Слон ♗.</li>
-                <li><strong>Волны 15+:</strong> Поле 9х9. Полная армия Бездны.</li>
+                <li><strong>Waves 1-4:</strong> 6x6 Board. Enemies: Pawns <span class="inline-icon piece-pawn"></span> and Knights <span class="inline-icon piece-knight"></span>.</li>
+                <li><strong>Waves 5-9:</strong> 7x7 Board. Rook <span class="inline-icon piece-rook"></span> joins the fray.</li>
+                <li><strong>Waves 10-14:</strong> 8x8 Board. Bishop <span class="inline-icon piece-bishop"></span> appears.</li>
+                <li><strong>Waves 15+:</strong> 9x9 Board. Full army of the Void.</li>
             </ul>
+
+            <h3> <span class="icon icon-allart"></span> Critical Rule: Pawn Promotion</h3>
+            <p>If an enemy Pawn <span class="inline-icon piece-pawn"></span> reaches the very bottom of the board, it will promote to a Queen <span class="inline-icon piece-queen"></span>!</p>
+             
+            <h3> <span class="icon icon-blood"></span> Resources</h3>
+            <p>Every single move costs <strong>1 <span class="icon icon-blood"></span> Blood</strong> (unless upgraded). Defeating an enemy restores your Blood. Tiles crumble into the <strong>Void <span class="icon icon-void"></span></strong> behind you.</p>
             
-            <h3>⚠️ Важное правило: Проведение Пешки</h3>
-            <p>Если вражеская Пешка ♟️ дойдет до самого низа доски, она **превратится в Ферзя ♕**! Ферзь бьет во все стороны без ограничения по дальности. Не давайте им дойти!</p>
-            
-            <h3>🩸 Ресурсы</h3>
-            <p>Каждое перемещение стоит <strong>1 🩸 Крови</strong> (если нет улучшений). Убийство врага восстанавливает Кровь. За вами клетки превращаются в <strong>Бездну 🕳️</strong>.</p>
-            
-            <div style="text-align: center;"><button onclick="toggleHelp(false)">Назад</button></div>
+            <div style="text-align: center;"><button onclick="toggleHelp(false)">Back</button></div>
         </div>
     </div>
 
     <div id="upgrade-screen" class="overlay">
-        <h2 style="text-align:center; font-size:1.4rem;">Жертва принесена. Выберите дар:</h2>
+        <h2 style="text-align:center; font-size:1.4rem;">Sacrifice accepted. Choose a blessing:</h2>
         <div id="upgrades-container" style="display:flex; flex-direction:column; align-items:center; width:100%;"></div>
     </div>
 
     <div id="game-over" class="overlay">
-        <h2 style="font-size: 2.5rem; margin: 0; text-shadow: 0 5px 10px #000;">БЕЗДНА ПОГЛОТИЛА ВАС</h2>
+        <h2 style="font-size: 2.5rem; margin: 0; text-shadow: 0 5px 10px #000;">THE VOID CONSUMED YOU</h2>
         <p id="score-report" style="font-size: 1.2rem; margin: 15px 0;"></p>
-        <button onclick="backToMenu()">В главное меню</button>
+        <button onclick="backToMenu()">To Main Menu</button>
     </div>
 
     <script>
@@ -317,17 +354,16 @@
         let BLOOD_COST_PER_MOVE = 1; 
         let isOpenedFromMenu = false;
 
-        // 🔥 СИСТЕМА ПРЕДМЕТОВ И СУМКИ
-        let inventory = [];            // Хранилище купленных предметов
-        let maxInventorySlots = 1;     // Стартовый размер инвентаря
-        let targetingItemIdx = null;   // Какой по счету предмет сейчас прицеливается
-        let pendingShopItem = null;    // Временный буфер для обмена
+        let inventory = [];            
+        let maxInventorySlots = 1;     
+        let targetingItemIdx = null;   
+        let pendingShopItem = null;    
         let frozenEnemiesTurn = false;
 
         const SHOP_ITEMS = [
-            { id: 'hourglass', title: '⏳ Часы Времени', emoji: '⏳', text: 'Замораживают врагов на следующий ход. Позволяет сходить дважды.', price: 10, type: 'instant_use' },
-            { id: 'bomb', title: '💣 Кровавая Бомба', emoji: '💣', text: 'Уничтожает ЛЮБОГО врага на выбранной клетке, превращая её в Бездну.', price: 8, type: 'target_cell' },
-            { id: 'elixir', title: '🍷 Эликсир Жизни', emoji: '🍷', text: 'Мгновенно восстанавливает 1 ❤️ ХП (не выше максимума).', price: 6, type: 'instant_use' }
+            { id: 'hourglass', title: '⏳ Hourglass of Time', emoji: '⏳', text: 'Freezes enemies for the next turn. Allows you to move twice.', price: 10, type: 'instant_use' },
+            { id: 'bomb', title: '💣 Blood Bomb', emoji: '💣', text: 'Destroys ANY enemy on the selected tile, turning it into the Void.', price: 8, type: 'target_cell' },
+            { id: 'elixir', title: '🍷 Elixir of Life', emoji: '🍷', text: 'Instantly restores 1 <span class="icon icon-heart"></span> HP (cannot exceed your maximum HP).', price: 6, type: 'instant_use' }
         ];
 
         const ENEMY_PRESETS = {
@@ -361,7 +397,7 @@
 
         function loadHighScore() {
             let record = localStorage.getItem('chess_rogue_highscore') || 1;
-            document.getElementById('high-score-display').innerText = `🏆 Максимальная волна: ${record}`;
+            document.getElementById('high-score-display').innerText = `High Score: Wave ${record}`;
         }
 
         function saveHighScore(level) {
@@ -414,7 +450,7 @@
             else BOARD_SIZE = 6;
 
             if (oldSize !== BOARD_SIZE && oldSize !== undefined) {
-                setTimeout(() => triggerPopup("ДОСКА РАСШИРЕНА!"), 300);
+                setTimeout(() => triggerPopup("BOARD EXPANDED!"), 300);
             }
         }
 
@@ -424,7 +460,6 @@
             boardEl.style.gridTemplateColumns = `repeat(${BOARD_SIZE}, 1fr)`;
             boardEl.style.gridTemplateRows = `repeat(${BOARD_SIZE}, 1fr)`;
             
-            // Динамический расчет ширины/высоты доски для мобильных через CSS переменные или JS
             let currentCellSize = window.innerWidth <= 380 ? 34 : (window.innerWidth <= 600 ? 40 : 62);
             boardEl.style.width = `${currentCellSize * BOARD_SIZE}px`;
             boardEl.style.height = `${currentCellSize * BOARD_SIZE}px`;
@@ -441,7 +476,6 @@
             }
         }
 
-        // Авто-подгон сетки при повороте экрана смартфона
         window.addEventListener('resize', () => {
             if (document.getElementById('game-container').style.display === 'flex') {
                 createBoardDOM();
@@ -488,7 +522,6 @@
             document.getElementById('max-hp').innerText = maxHp;
             document.getElementById('blood-val').innerText = playerBlood;
             
-            // 🔥 РЕНДЕР ИНВЕНТАРЯ СЛОТОВ
             const invContainer = document.getElementById('inventory-container');
             invContainer.innerHTML = '';
             for (let i = 0; i < maxInventorySlots; i++) {
@@ -506,7 +539,7 @@
                     slot.addEventListener('click', () => useActiveItem(i));
                 } else {
                     slot.innerText = '📦';
-                    slot.title = 'Пустой слот инвентаря';
+                    slot.title = 'Empty inventory slot';
                 }
                 invContainer.appendChild(slot);
             }
@@ -556,7 +589,6 @@
         }
 
         function onCellClick(r, c) {
-            // 🔥 ПРОВЕРКА ПРИЦЕЛИВАНИЯ ПРЕДМЕТОМ
             if (targetingItemIdx !== null) {
                 if (validItemTargets.some(t => t.r === r && t.c === c)) {
                     executeTargetedItem(r, c);
@@ -584,7 +616,6 @@
             selectedCell = null; validMoves = []; render();
         }
 
-        // 🔥 ИСПОЛЬЗОВАНИЕ АКТИВНОГО ПРЕДМЕТА ИЗ СЛОТА
         function useActiveItem(index) {
             if (targetingItemIdx !== null) {
                 targetingItemIdx = null; validItemTargets = []; updateUI(); render();
@@ -597,13 +628,13 @@
             if (item.type === 'instant_use') {
                 if (item.id === 'hourglass') {
                     frozenEnemiesTurn = true;
-                    triggerPopup("⏳ ВРЕМЯ ЗАМЕРЛО! Враги пропустят ход!");
+                    triggerPopup("⏳ TIME FROZE! Enemies skip turn!");
                 } else if (item.id === 'elixir') {
-                    if (playerHp >= maxHp) { triggerPopup("Здоровье уже на максимуме!"); return; }
+                    if (playerHp >= maxHp) { triggerPopup("Health already at maximum!"); return; }
                     playerHp = Math.min(maxHp, playerHp + 1);
-                    triggerPopup("🍷 Восстановлено 1 ХП!");
+                    triggerPopup("🍷 Restored 1 HP!");
                 }
-                inventory.splice(index, 1); // Удаляем использованный предмет
+                inventory.splice(index, 1); 
                 updateUI(); render();
             } 
             else if (item.type === 'target_cell') {
@@ -617,19 +648,18 @@
                     }
                 }
                 updateUI(); render();
-                triggerPopup("🎯 Выберите клетку для взрыва бомбы!");
+                triggerPopup("🎯 Choose a tile to detonate the bomb!");
             }
         }
 
-        // 🔥 ПРИМЕНЕНИЕ ЭФФЕКТА БОМБЫ
         function executeTargetedItem(r, c) {
             const item = inventory[targetingItemIdx];
             if (item && item.id === 'bomb') {
                 boardState[r][c] = null; 
                 voidState[r][c] = true;  
-                triggerPopup("💣 Клетка поглощена Бездной!");
+                triggerPopup("💣 Tile consumed by the Void!");
             }
-            inventory.splice(targetingItemIdx, 1); // Удаляем использованный
+            inventory.splice(targetingItemIdx, 1); 
             targetingItemIdx = null; validItemTargets = [];
             updateUI(); render();
 
@@ -676,7 +706,7 @@
             if (playerBlood < BLOOD_COST_PER_MOVE) {
                 playerHp--;
                 selectedCell = null; validMoves = []; updateUI(); render();
-                if (playerHp <= 0) gameOver('Кровь кончилась. Ваше сердце остановилось.');
+                if (playerHp <= 0) gameOver('Out of Blood. Your heart stopped.');
                 return; 
             }
 
@@ -701,7 +731,7 @@
 
             if (frozenEnemiesTurn) {
                 frozenEnemiesTurn = false;
-                triggerPopup("⏳ Враги застыли во времени!");
+                triggerPopup("⏳ Enemies frozen in time!");
             } else {
                 setTimeout(enemiesTurn, 200);
             }
@@ -754,7 +784,7 @@
                             boardState[r][c] = null; 
                             if (nextR === BOARD_SIZE - 1) {
                                 boardState[nextR][c] = { type: 'queen', icon: '♕' };
-                                triggerPopup("⚠️ ПЕШКА СТАЛА ФЕРЗЕМ!");
+                                triggerPopup("⚠️ PAWN PROMOTED TO QUEEN!");
                             } else {
                                 boardState[nextR][c] = piece;
                             }
@@ -833,7 +863,7 @@
             
             if (playerHit) { playerHp--; updateUI(); }
             render();
-            if (playerHp <= 0) gameOver('Вас уничтожили фигуры противника.');
+            if (playerHp <= 0) gameOver('You were destroyed by enemy pieces.');
         }
 
         function endLevelVictory() {
@@ -847,7 +877,6 @@
             }
         }
 
-        // 🔥 ОТКРЫТИЕ ИНТЕРФЕЙСА ТОРГОВЦА
         function showMerchantScreen() {
             document.getElementById('merchant-blood-val').innerText = playerBlood;
             const container = document.getElementById('shop-container');
@@ -862,8 +891,8 @@
                 card.innerHTML = `
                     <h3>${item.title}</h3>
                     <p style="font-size:0.85rem; color:#ccc; min-height:35px; margin: 8px 0;">${item.text}</p>
-                    <div class="price">${item.price} 🩸</div>
-                    <button onclick="tryBuyItem('${item.id}', ${item.price})">Купить</button>
+                    <div class="price">${item.price} <span class="icon icon-blood"></span></div>
+                    <button onclick="tryBuyItem('${item.id}', ${item.price})">Buy</button>
                 `;
                 container.appendChild(card);
             });
@@ -871,16 +900,14 @@
             document.getElementById('merchant-screen').style.display = 'flex';
         }
 
-        // 🔥 ПРОВЕРКА ВОЗМОЖНОСТИ ПОКУПКИ И КОНТРОЛЬ СУМКИ
         function tryBuyItem(itemId, price) {
             if (playerBlood < price) {
-                triggerPopup("❌ Недостаточно Крови для покупки!");
+                triggerPopup("❌ Not enough Blood!");
                 return;
             }
 
             const itemData = SHOP_ITEMS.find(i => i.id === itemId);
 
-            // Если в инвентаре свободного места нет
             if (inventory.length >= maxInventorySlots) {
                 pendingShopItem = { item: itemData, price: price };
                 openSwapDialog();
@@ -890,7 +917,6 @@
             executePurchase(itemData, price);
         }
 
-        // Проведение транзакции
         function executePurchase(itemData, price) {
             playerBlood -= price;
             document.getElementById('merchant-blood-val').innerText = playerBlood;
@@ -901,26 +927,23 @@
             if (card) {
                 card.classList.add('sold-out');
                 card.querySelector('button').disabled = true;
-                card.querySelector('button').innerText = "Куплено";
+                card.querySelector('button').innerText = "Bought";
             }
             
-            triggerPopup(`✅ Получено: ${itemData.title}`);
+            triggerPopup(`✅ Received: ${itemData.title}`);
             updateUI();
         }
 
-        // 🔥 ДИАЛОГ ВЫБОРА ПРЕДМЕТА ДЛЯ УНИЧТОЖЕНИЯ И ЗАМЕНЫ
         function openSwapDialog() {
             const container = document.getElementById('swap-items-choice');
-            container.innerHTML = '<p style="color:#aaa; font-size:0.85rem; margin-top:0;">Выберите, какую вещь уничтожить:</p>';
+            container.innerHTML = '<p style="color:#aaa; font-size:0.85rem; margin-top:0;">Choose which item to discard:</p>';
 
             inventory.forEach((item, index) => {
                 const btn = document.createElement('button');
                 btn.style.cssText = "width:100%; text-transform:none; margin-top:5px; background:#2a1111; border-color:#ff4d4d; color:#fff;";
-                btn.innerText = `Заменить ${item.title}`;
+                btn.innerText = `Replace ${item.title}`;
                 btn.onclick = () => {
-                    // Уничтожаем старый предмет на этой позиции
                     inventory.splice(index, 1);
-                    // Покупаем новый
                     executePurchase(pendingShopItem.item, pendingShopItem.price);
                     cancelSwap();
                 };
@@ -942,25 +965,23 @@
             startLevel();
         }
 
-        // 🔥 ОБНОВЛЕННЫЙ ПУЛ ДАРОВ (ДОБАВЛЕН ХОД НА УВЕЛИЧЕНИЕ СУМКИ)
         const ALL_UPGRADES = [
-            { id: 'heal', title: '💉 Чистое Переливание', text: 'Полностью восстанавливает ХП до максимума. Цена: 2 🩸', action: () => { 
+            { id: 'heal', title: '<span class="icon icon-heal"></span> Pure Transfusion', text: 'Fully restores HP to maximum. Cost: 2 <span class="icon icon-blood"></span>', action: () => { 
                 if(playerBlood >= 2) { playerHp = maxHp; playerBlood -= 2; } 
             } },
-            { id: 'ritual', title: '🩸 Кровавый Ритуал', text: 'Пожертвовать 1 ХП ради полной перезарядки Крови (+10 🩸)', action: () => { 
+            { id: 'ritual', title: '<span class="icon icon-blood"></span> Blood Ritual', text: 'Sacrifice 1 HP for a full Blood refill (+10 <span class="icon icon-blood"></span>)', action: () => { 
                 if(playerHp > 1) { playerHp -= 1; playerBlood += 10; } 
             } },
-            { id: 'max_hp', title: '🏺 Кровавый Сосуд', text: '+1 к макс. ХП. Пассивно: перемещения больше не тратят Кровь!', action: () => { 
+            { id: 'max_hp', title: '<span class="icon icon-vessel"></span> Blood Vessel', text: '+1 Max HP. Passive: Movements no longer cost Blood!', action: () => { 
                 maxHp++; BLOOD_COST_PER_MOVE = 0;
             } },
-            { id: 'knight', title: '🌌 Мутация Войда', text: 'Король ходит как Конь и прыгает через Бездну. Плата: -1 от макс. ХП!', action: () => { 
+            { id: 'knight', title: '<span class="inline-icon piece-knight"></span> Void Mutation', text: 'King moves like a Knight and leaps over the Void. Cost: -1 Max HP!', action: () => { 
                 canMoveLikeKnight = true; if(maxHp > 1) { maxHp--; playerHp = Math.min(playerHp, maxHp); }
             } },
-            { id: 'blood_greed', title: '💰 Алчность Бездны', text: '+3 🩸 за каждое убийство врага', action: () => { 
+            { id: 'blood_greed', title: '<span class="icon icon-greed"></span> Void Greed', text: '+3 <span class="icon icon-blood"></span> for each enemy kill.', action: () => { 
                 BLOOD_PER_KILL += 3; 
             } },
-            // Новая пассивка на расширение сумки хранения
-            { id: 'bag_ext', title: '🎒 Пространственный Карман', text: 'Увеличивает вместимость сумки активных предметов на +1 слот (макс. 3).', action: () => {
+            { id: 'bag_ext', title: '<span class="icon icon-backpack"></span> Dimensional Pocket', text: 'Increases inventory capacity by +1 slot (Max 3).', action: () => {
                 maxInventorySlots = Math.min(3, maxInventorySlots + 1);
             } }
         ];
@@ -993,7 +1014,7 @@
 
         function gameOver(reason) {
             saveHighScore(currentLevel);
-            document.getElementById('score-report').innerText = `${reason} Вы закончили на Волна: ${currentLevel}.`;
+            document.getElementById('score-report').innerText = `${reason} You finished on Wave: ${currentLevel}.`;
             document.getElementById('game-over').style.display = 'flex';
         }
 
